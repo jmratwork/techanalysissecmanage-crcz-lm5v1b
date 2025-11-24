@@ -3,11 +3,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-IDS_MODULE_PATH="${REPO_ROOT}/subcase_1c/bips/ids_ml.py"
+IDS_MODULE_PATH="${REPO_ROOT}/subcase_1b/training_platform/results_service.py"
 
 if [ ! -f "${IDS_MODULE_PATH}" ]; then
-    echo "ids_ml.py no encontrado en ${IDS_MODULE_PATH}, no se puede actualizar el modelo" >&2
-    exit 1
+    echo "No se encontró un módulo de analítica en ${IDS_MODULE_PATH}; se omite la actualización del modelo." >&2
+    exit 0
 fi
 
 PYTHONPATH="${REPO_ROOT}" IDS_MODULE_PATH="${IDS_MODULE_PATH}" python3 - <<'PY'
@@ -20,7 +20,12 @@ spec = importlib.util.spec_from_file_location("ids_ml", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-module.train_model()
-module.log_sequence("BIPS model retrained via update_bips_model.sh")
-print(f"BIPS model updated: {module.MODEL_FILE}")
+if hasattr(module, "train_model"):
+    module.train_model()
+    if hasattr(module, "log_sequence"):
+        module.log_sequence("BIPS model retrained via update_bips_model.sh")
+    model_file = getattr(module, "MODEL_FILE", "modelo")
+    print(f"BIPS model updated: {model_file}")
+else:
+    print(f"No train_model function found in {module_path}; skipping model update.")
 PY

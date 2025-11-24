@@ -12,8 +12,8 @@ Configuration is handled via environment variables:
 ``IRIS_API_KEY``        API key for IRIS authentication (optional)
 ``MISP_URL``            Base URL of the MISP instance (default: http://localhost:8080)
 ``MISP_API_KEY``        API key for MISP authentication (required for tagging)
-``REPORT_SCRIPT``       Path to ``generate_post_incident_report.sh``
-                        (default: ../subcase_1c/scripts/generate_post_incident_report.sh)
+``REPORT_SCRIPT``       Path to ``collect_artifacts.sh``
+                        (default: ../subcase_1b/scripts/collect_artifacts.sh)
 ``POLL_INTERVAL``       Seconds between checks (default: 60)
 ``STATE_FILE``          File tracking processed case IDs
                         (default: scripts/.iris_processed_cases.json)
@@ -43,7 +43,7 @@ MISP_API_KEY = os.getenv("MISP_API_KEY")
 MISP_CA_BUNDLE = os.getenv("MISP_CA_BUNDLE")
 REPORT_SCRIPT = os.getenv(
     "REPORT_SCRIPT",
-    str(Path(__file__).resolve().parents[1] / "subcase_1c" / "scripts" / "generate_post_incident_report.sh"),
+    str(Path(__file__).resolve().parents[1] / "subcase_1b" / "scripts" / "collect_artifacts.sh"),
 )
 UPDATE_BIPS_SCRIPT = os.getenv(
     "UPDATE_BIPS_SCRIPT", str(Path(__file__).resolve().with_name("update_bips_model.sh"))

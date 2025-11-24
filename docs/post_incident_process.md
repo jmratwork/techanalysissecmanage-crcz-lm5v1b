@@ -1,11 +1,11 @@
 # Post-Incident Process
 
-This document describes the steps to handle the post-incident report generated for Subcase 1c.
+This document describes the steps to handle the post-incident archive generated for Subcase 1b.
 
 ## Review the Report
-1. Execute `subcase_1c/scripts/generate_post_incident_report.sh` after the incident ends.
-2. Locate the timestamped file in the `reports/` directory.
-3. Examine the NG‑SIEM, BIPS and Act sections to understand the event timeline and impacts.
+1. Execute `subcase_1b/scripts/collect_artifacts.sh` after the incident ends.
+2. Locate the resulting `artefacts.zip` in the working directory.
+3. Examine the NG‑SIEM extracts, Caldera profile outputs, and training platform logs to understand the event timeline and impacts.
 
 ## Apply Patches
 1. Identify required fixes based on findings in the report.
