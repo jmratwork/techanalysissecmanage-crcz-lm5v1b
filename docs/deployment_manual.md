@@ -30,12 +30,10 @@ This manual describes how to deploy KYPO training scenarios in this repository. 
 
 ## Offline Environments
 
-For systems without Internet access, pre-download required packages and modules:
+For systems without Internet access, pre-download required packages and modules used by the subcase 1b environment:
 
-- Copy any necessary `.deb` files to `/opt/offline`. The start scripts for Subcase 1c
-  (e.g., `start_soc_services.sh` and `start_cti_component.sh`) will install packages
-  from this directory if `apt-get` fails.
-- Save PowerShell modules for offline use:
+- Copy any necessary `.deb` files (e.g., Docker engine and Compose plugin) to `/opt/offline` so that startup scripts can install them without reaching external mirrors.
+- Save PowerShell modules for offline use if Windows assets are involved:
   ```powershell
   Save-Module -Name PowerShellGet,PackageManagement -Path /opt/offline/psmodules
   ```
@@ -47,12 +45,9 @@ For systems without Internet access, pre-download required packages and modules:
 2. **Install Python dependencies** – Before running any scenario scripts, install required packages:
    ```bash
    pip install -r subcase_1b/training_platform/requirements.txt   # for Subcase 1b
-   pip install -r subcase_1c/requirements.txt                     # for Subcase 1c
    ```
-   The Subcase 1c requirements include the `yara-python` library to enable
-   rule-based malware detection.
 3. **Launch core services**
-   - Start BIPS, NG‑SIEM, CICMS, NG‑SOAR, and related components using the scripts under `subcase_1b/scripts/` or `subcase_1c/scripts/`.
+   - Start BIPS, NG‑SIEM, CICMS, NG‑SOAR, and related components using the scripts under `subcase_1b/scripts/`.
    - If `systemctl` is unavailable, set `DIRECT_START=1` to invoke legacy service scripts.
 4. **Validate operation**
    - Confirm ports are listening and dashboards are reachable.

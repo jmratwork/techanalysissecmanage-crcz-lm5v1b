@@ -26,12 +26,12 @@ An alert is considered confirmed when:
 4. **No Benign Explanation** – Cross‑check with training scripts to rule out expected actions.
 5. Record confirmation in CICMS/Act via the appropriate API calls.
 
-## Response Playbooks
+## Automation References
 
-| Playbook | Purpose | When to Execute |
-|---------|---------|----------------|
-| [`response.json`](../subcase_1c/playbooks/response.json) | Isolate a compromised host to prevent spread. | Execute when initial triage shows active compromise or lateral movement. |
-| [`elimination.json`](../subcase_1c/playbooks/elimination.json) | Remove malware artifacts and clean quarantine directories. | Run after response to eliminate confirmed malicious components. |
-| [`recovery.json`](../subcase_1c/playbooks/recovery.json) | Restore network connectivity and verify critical services. | Apply once elimination is complete and the host is ready to return to production. |
+| Artifact | Purpose | When to Use |
+|---------|---------|-------------|
+| [`subcase_1b/caldera_profiles/discovery.json`](../subcase_1b/caldera_profiles/discovery.json) | Documents the Caldera actions executed during lab runs. | Review when correlating trainee activity with NG‑SIEM alerts or validating lab_runner output. |
+| `subcase_1b/scripts/lab_runner.sh` | Executes approved reconnaissance and exploitation steps against the KYPO lab. | Use as the canonical sequence when reconstructing expected alert patterns. |
+| `subcase_1b/scripts/collect_artifacts.sh` | Packages logs for after-action analysis. | Run after evaluations to capture evidence referenced in incident timelines. |
 
-Following this guide ensures analysts can navigate dashboards, perform targeted searches, confirm alerts, and trigger the correct automation playbook during incident response.
+Following this guide ensures analysts can navigate dashboards, perform targeted searches, confirm alerts, and tie findings back to the approved automation in the subcase 1b environment.

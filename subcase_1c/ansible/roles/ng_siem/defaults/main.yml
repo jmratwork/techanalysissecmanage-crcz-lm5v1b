@@ -1,3 +1,0 @@
----
-# Default Elastic Stack version for container images
-elk_version: "8.11.3"

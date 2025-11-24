@@ -22,9 +22,9 @@ See [deployment manual](docs/deployment_manual.md) for detailed steps including 
    cd techanalysissecmanage-crcz
    ```
 2. **Authenticate to CyberRangeCZ** – Ensure VPN or direct connectivity and log into the portal.
-3. **Prepare the Scenario** – Upload required images or scripts (e.g., `subcase_1c/scripts/benign_malware_simulator.ps1`) to the appropriate CRCZ repositories.
+3. **Prepare the Scenario** – Upload required images or scripts (e.g., `subcase_1b/scripts/cyber_range_start.sh`) to the appropriate CRCZ repositories.
 4. **Launch the Scenario** – Use the CRCZ interface to create a new exercise and point it to this repository. Configure network ranges and participants as needed.
-5. **Monitor the Exercise** – During execution, analysts should track alerts and manage cases using NG-SOC components such as BIPS, NG-SIEM, CICMS, and MISP (for CTI sharing), following the workflow described in [`docs/training_workflows.md`](docs/training_workflows.md) and the deployment/validation steps in [`docs/subcase_1c_guide.md`](docs/subcase_1c_guide.md).
+5. **Monitor the Exercise** – During execution, analysts should track alerts and manage cases using NG-SOC components such as BIPS, NG-SIEM, CICMS, and MISP (for CTI sharing), following the workflow described in [`docs/training_workflows.md`](docs/training_workflows.md) and the deployment/validation steps in [`docs/subcase_1b_guide.md`](docs/subcase_1b_guide.md).
 
 ### Phishing Quiz Module
 
@@ -63,8 +63,8 @@ The repository includes `scripts/iris_case_closed_poll.py`, a helper that
 polls an IRIS case-management instance for cases marked as **closed**. When a
 newly closed case is discovered it will:
 
-1. Run `subcase_1c/scripts/generate_post_incident_report.sh` to create a
-   post-incident report.
+1. Run `subcase_1b/scripts/collect_artifacts.sh` to gather
+   post-incident evidence.
 2. Tag the associated MISP event with `lessons learned` via the MISP API.
 
 Configuration is handled through environment variables such as `IRIS_URL`,
@@ -98,8 +98,6 @@ Additional theoretical background and workflow guidance can be found in [`docs/t
 
 - [Subcase 1b – Penetration Testing Training](docs/subcase_1b_guide.md)
 Subcase 1b delivers self-paced penetration testing and vulnerability assessment training using a dedicated training platform, a trainee workstation, and a Cyber Range simulation of CYNET's network.
-- [Subcase 1c – Malware Simulation and CTI Integration](docs/subcase_1c_guide.md)
-Subcase 1c models a malware incident response exercise, adding a C2 server, a CTI component running MISP, and corresponding services for NG‑SIEM, BIPS, CICMS, and NG‑SOAR. The guide covers deployment, attack simulation, validation, and configuration of detection rules and playbooks.
 
 ## CRCZ/KYPO Training Packaging
 
