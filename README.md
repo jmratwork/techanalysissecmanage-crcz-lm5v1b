@@ -114,6 +114,15 @@ After adding or modifying sandbox definitions, you can validate and publish the 
    ```
    The publish command expects authentication details appropriate for your CRCZ/KYPO instance.
 
+### Sandbox agenda definition
+
+If you are creating a sandbox directly from the workshop agenda, use the structured
+definition in `sandboxes/sandbox_agenda.yaml`. It sequences the topology import,
+provisioning playbook, and port checks as explicit list items to avoid YAML
+parsing errors such as “Expected a SequenceNode start”. The same topology and
+provisioning files referenced in `training.yaml` are reused, so validation and
+packaging work identically while providing clearer handoff notes for instructors.
+
 > ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`topology.yml`](topology.yml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
 >
 > - **Topology name**: `subcase-1b-topology`
