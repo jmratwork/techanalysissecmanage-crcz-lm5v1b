@@ -114,9 +114,9 @@ After adding or modifying sandbox definitions, you can validate and publish the 
    ```
    The publish command expects authentication details appropriate for your CRCZ/KYPO instance.
 
-> ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase_1b_topology` (as shown in [`topology.yml`](topology.yml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
+> ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`topology.yml`](topology.yml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
 >
-> - **Topology name**: `subcase_1b_topology`
+> - **Topology name**: `subcase-1b-topology`
 > - **Topology YAML**: `sandboxes/topology_subcase_1b.yaml`
 > - **Description (optional)**: “Subcase 1b topology for NG‑SOC labs”
 >

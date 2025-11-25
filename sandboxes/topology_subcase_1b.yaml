@@ -1,5 +1,5 @@
 ---
-name: "subcase_1b_topology"
+name: "subcase-1b-topology"
 description: "Penetration testing environment for subcase 1b"
 hosts:
   training_platform:
