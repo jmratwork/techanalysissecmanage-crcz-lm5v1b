@@ -1,6 +1,6 @@
 ---
 kypo_sandbox_config_version: 1
-sandbox:
+sandboxes:
   - id: subcase_1b
     name: "Subcase 1b Sandbox"
     description: >-
