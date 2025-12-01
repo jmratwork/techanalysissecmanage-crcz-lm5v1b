@@ -139,6 +139,15 @@ Use the KYPO CLI (or the equivalent KYPO UI steps) to reproduce the agenda-drive
 workflow with the exact repository files. The examples below assume you are
 already authenticated in the target KYPO instance.
 
+> ✅ **Validate the agenda after every change**: any time you edit
+> `sandboxes/sandbox_agenda.yaml`, run a YAML/sequence validation before
+> publishing. For example:
+> ```bash
+> kypo sandbox validate sandboxes/sandbox_agenda.yaml
+> ```
+> This ensures the agenda remains a valid top-level sequence and catches syntax
+> regressions before upload.
+
 1. **Import the topology** with the expected name and YAML:
    ```bash
    kypo sandbox topology import \
