@@ -132,3 +132,39 @@ identically while providing clearer handoff notes for instructors.
 > - **Description (optional)**: “Subcase 1b topology for NG‑SOC labs”
 >
 > This example matches the definition included in this repository and prevents discrepancies during packaging and publication.
+
+#### CLI walkthrough
+
+Use the KYPO CLI (or the equivalent KYPO UI steps) to reproduce the agenda-driven
+workflow with the exact repository files. The examples below assume you are
+already authenticated in the target KYPO instance.
+
+1. **Import the topology** with the expected name and YAML:
+   ```bash
+   kypo sandbox topology import \
+     --name subcase-1b-topology \
+     sandboxes/topology_subcase_1b.yaml
+   ```
+   *UI:* In **Sandboxes → Topologies**, choose **Import topology**, select the
+   `sandboxes/topology_subcase_1b.yaml` file, and set the **Name** to
+   `subcase-1b-topology`.
+
+2. **Create the sandbox** from the agenda without adding wrapper keys. The YAML
+   must start directly with the sequence to avoid `SequenceNode` parse errors:
+   ```bash
+   kypo sandbox create \
+     --topology subcase-1b-topology \
+     sandboxes/sandbox_agenda.yaml
+   ```
+   *UI:* In **Sandboxes → Create sandbox**, select the `subcase-1b-topology`
+   topology and upload `sandboxes/sandbox_agenda.yaml` as-is. Do not insert
+   extra root fields (for example, `version:` or a wrapper object), because the
+   parser requires the top-level sequence.
+
+3. **Verify the provisioning playbook association** so that machines are
+   configured automatically during creation:
+   ```bash
+   kypo sandbox show subcase-1b-topology
+   ```
+   Confirm the listed provisioning playbook points to the agenda entry that
+   references `provisioning/playbooks/ag-soc-base.yml`.
