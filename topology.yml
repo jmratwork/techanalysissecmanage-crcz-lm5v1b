@@ -1,4 +1,3 @@
----
 name: "subcase-1b-topology"
 hosts:
   training_platform:
