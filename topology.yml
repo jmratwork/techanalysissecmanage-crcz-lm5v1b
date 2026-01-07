@@ -1,4 +1,4 @@
-name: "LM5-subcase-1b-topology"
+name: "lm5-subcase-1b-topology"
 hosts:
   training_platform:
     image: debian-11
