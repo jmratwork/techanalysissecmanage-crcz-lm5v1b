@@ -17,8 +17,18 @@
   tasks:
     - name: Install training web server
       apt:
-        name: nginx
+        name:
+          - nginx
+          - python3
+          - python3-venv
+          - python3-pip
         state: present
+    - name: Create training platform virtualenv
+      command: python3 -m venv "{{ ansible_env.HOME }}/subcase_1b/training_platform/.venv"
+      args:
+        creates: "{{ ansible_env.HOME }}/subcase_1b/training_platform/.venv/bin/activate"
+    - name: Install training platform requirements
+      command: "{{ ansible_env.HOME }}/subcase_1b/training_platform/.venv/bin/pip install -r {{ ansible_env.HOME }}/subcase_1b/training_platform/requirements.txt"
     - name: Ensure nginx running
       service:
         name: nginx

@@ -2,12 +2,19 @@
 set -euo pipefail
 
 SERVICE_DIR="$(dirname "$0")/../training_platform"
-CLI="python3 $SERVICE_DIR/cli.py"
+PYTHON_BIN="python3"
+if [ -x "$SERVICE_DIR/.venv/bin/python" ]; then
+    PYTHON_BIN="$SERVICE_DIR/.venv/bin/python"
+fi
+CLI="$PYTHON_BIN $SERVICE_DIR/cli.py"
 INSTRUCTOR="${INSTRUCTOR:-instructor}"
 PASSWORD="${PASSWORD:-changeme}"
 COURSE_NAME="${COURSE_NAME:-PenTest 101}"
 COURSE_CONTENT="${COURSE_CONTENT:-Introduction to penetration testing}"
-LOG_FILE="${LOG_FILE:-/var/log/training_platform/courses.log}"
+LOG_DIR="${LOG_DIR:-/var/log/training_platform}"
+LOG_FILE="${LOG_FILE:-$LOG_DIR/courses.log}"
+SERVER_LOG="${SERVER_LOG:-$LOG_DIR/server.log}"
+PID_FILE="${PID_FILE:-/var/run/training_platform.pid}"
 
 # LTI private key for KYPO integration. The key can be supplied directly
 # via the LTI_TOOL_PRIVATE_KEY environment variable or mounted as a
@@ -34,11 +41,16 @@ fi
 # export so child processes can access the key
 export LTI_TOOL_PRIVATE_KEY
 
-mkdir -p "$(dirname "$LOG_FILE")"
+mkdir -p "$LOG_DIR" "$(dirname "$PID_FILE")"
 
-# start service in background
-python3 "$SERVICE_DIR/app.py" >/tmp/training_platform_server.log 2>&1 &
-sleep 1
+# start service in background if not already running
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    echo "Training platform already running with PID $(cat "$PID_FILE")."
+else
+    "$PYTHON_BIN" "$SERVICE_DIR/app.py" >>"$SERVER_LOG" 2>&1 &
+    echo $! > "$PID_FILE"
+    sleep 1
+fi
 
 # register instructor if needed and obtain token
 $CLI register --username "$INSTRUCTOR" --password "$PASSWORD" --role instructor >/dev/null 2>&1 || true
