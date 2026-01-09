@@ -1,50 +1,49 @@
-sandboxes:
-  - id: subcase_1b
-    name: "Subcase 1b Sandbox"
-    description: >-
-      Agenda-driven sandbox definition derived from the Subcase 1b scenario.
-      The agenda sequences provisioning and validation so KYPO correctly
-      orders the topology import, VM configuration, and service checks.
-    topology: sandboxes/topology_subcase_1b.yaml
-    provisioning: sandboxes/provisioning_subcase_1b/site.yml
-    agenda:
-      - phase: "Topology import"
-        steps:
-          - action: "upload_topology"
-            file: sandboxes/topology_subcase_1b.yaml
-            notes: "Load hosts, networks, and router definitions for the training subnet."
-      - phase: "Base provisioning"
-        steps:
-          - action: "run_playbook"
-            playbook: sandboxes/provisioning_subcase_1b/site.yml
-            notes: "Install required packages across all nodes, including NG‑SOC services and trainee workstation tools."
-      - phase: "Service validation"
-        steps:
-          - action: "check_ports"
-            targets:
-              - host: training_platform
-                ports: [22, 80]
-              - host: trainee_workstation
-                ports: [22]
-              - host: cyber_range
-                ports: [22, 8000]
-              - host: randomization_platform
-                ports: [22, 8500]
-              - host: bips
-                ports: [22, 8600]
-              - host: ng_siem
-                ports: [22, 8700]
-              - host: cicms
-                ports: [22, 8800]
-              - host: ng_soar
-                ports: [22, 8900]
-            notes: "Ensure core services listen on the expected ports after provisioning."
-      - phase: "Workshop handoff"
-        steps:
-          - action: "record_notes"
-            fields:
-              - label: "Course name"
-                default: "pentest-101"
-              - label: "Instructor contact"
-              - label: "Range access URL"
-            notes: "Capture quick-reference metadata before publishing the sandbox."
+- id: subcase_1b
+  name: "Subcase 1b Sandbox"
+  description: >-
+    Agenda-driven sandbox definition derived from the Subcase 1b scenario.
+    The agenda sequences provisioning and validation so KYPO correctly
+    orders the topology import, VM configuration, and service checks.
+  topology: sandboxes/topology_subcase_1b.yaml
+  provisioning: sandboxes/provisioning_subcase_1b/site.yml
+  agenda:
+    - phase: "Topology import"
+      steps:
+        - action: "upload_topology"
+          file: sandboxes/topology_subcase_1b.yaml
+          notes: "Load hosts, networks, and router definitions for the training subnet."
+    - phase: "Base provisioning"
+      steps:
+        - action: "run_playbook"
+          playbook: sandboxes/provisioning_subcase_1b/site.yml
+          notes: "Install required packages across all nodes, including NG‑SOC services and trainee workstation tools."
+    - phase: "Service validation"
+      steps:
+        - action: "check_ports"
+          targets:
+            - host: training_platform
+              ports: [22, 80]
+            - host: trainee_workstation
+              ports: [22]
+            - host: cyber_range
+              ports: [22, 8000]
+            - host: randomization_platform
+              ports: [22, 8500]
+            - host: bips
+              ports: [22, 8600]
+            - host: ng_siem
+              ports: [22, 8700]
+            - host: cicms
+              ports: [22, 8800]
+            - host: ng_soar
+              ports: [22, 8900]
+          notes: "Ensure core services listen on the expected ports after provisioning."
+    - phase: "Workshop handoff"
+      steps:
+        - action: "record_notes"
+          fields:
+            - label: "Course name"
+              default: "pentest-101"
+            - label: "Instructor contact"
+            - label: "Range access URL"
+          notes: "Capture quick-reference metadata before publishing the sandbox."
