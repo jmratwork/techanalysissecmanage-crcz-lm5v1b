@@ -1,3 +1,4 @@
+# NOTE: Do not upload this file directly to the KYPO UI; use sandboxes/sandbox_agenda_ui.yaml instead.
 - id: subcase_1b
   name: "Subcase 1b Sandbox"
   description: >-
