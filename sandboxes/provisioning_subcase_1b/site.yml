@@ -48,6 +48,18 @@
 - hosts: cyber_range
   become: yes
   tasks:
+    - name: Install Docker Engine and Compose plugin
+      apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+    - name: Ensure Docker running
+      service:
+        name: docker
+        state: started
+        enabled: yes
     - name: Install DVWA dependencies
       apt:
         name:

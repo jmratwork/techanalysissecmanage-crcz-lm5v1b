@@ -15,7 +15,7 @@ mkdir -p "$APT_DIR" "$PIP_DIR"
 # Requires internet access and dpkg-dev for dpkg-scanpackages
 apt-get update
 apt-get install -y --no-install-recommends dpkg-dev
-apt-get download nmap gvm python3-pip git curl snapd
+apt-get download nmap gvm python3-pip git curl snapd docker.io docker-compose-plugin
 mv -- *.deb "$APT_DIR"/
 (
     cd "$APT_DIR"
