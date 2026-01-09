@@ -179,4 +179,4 @@ already authenticated in the target KYPO instance.
    kypo sandbox show subcase-1b-topology
    ```
    Confirm the listed provisioning playbook points to the agenda entry that
-   references `provisioning/playbooks/ag-soc-base.yml`.
+   references `sandboxes/provisioning_subcase_1b/site.yml`.
