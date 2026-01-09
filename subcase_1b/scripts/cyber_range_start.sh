@@ -5,27 +5,30 @@ RANGE_LOG="${RANGE_LOG:-/var/log/cyber_range/launch.log}"
 VULN_PROFILE="${VULN_PROFILE:-baseline}"
 COMPOSE_FILE="$(dirname "$0")/../docker-compose.yml"
 
-if ! command -v docker >/dev/null 2>&1; then
-    if [ "${ALLOW_NO_DOCKER:-0}" -eq 1 ]; then
-        echo "Docker not found; continuing without launching containers." >&2
-        exit 0
-    fi
-    echo "ERROR: docker command not found. Install Docker to run cyber_range_start.sh." >&2
-    exit 1
-fi
-if ! docker compose version >/dev/null 2>&1; then
-    echo "ERROR: Docker Compose plugin is required."
-    exit 1
-fi
-
 usage() {
     echo "Usage: $0 [--down]"
     echo "Deploy or tear down the cyber range environment using Docker Compose."
+    echo "Set ALLOW_NO_DOCKER=1 to start only the base services (apache2/mysql) when Docker is unavailable."
 }
 
 log() {
     mkdir -p "$(dirname "$RANGE_LOG")"
     echo "$(date) $1" >> "$RANGE_LOG"
+}
+
+start_service() {
+    local service_name=$1
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl start "$service_name"
+    else
+        service "$service_name" start
+    fi
+}
+
+start_alternative_services() {
+    log "Starting base services without Docker"
+    start_service apache2
+    start_service mysql
 }
 
 deploy() {
@@ -46,6 +49,19 @@ case "${1:-up}" in
         usage
         ;;
     *)
+        if ! command -v docker >/dev/null 2>&1; then
+            if [ "${ALLOW_NO_DOCKER:-0}" -eq 1 ]; then
+                echo "Docker not found; starting base services only." >&2
+                start_alternative_services
+                exit 0
+            fi
+            echo "ERROR: docker command not found. Docker is required for full cyber range deployment." >&2
+            exit 1
+        fi
+        if ! docker compose version >/dev/null 2>&1; then
+            echo "ERROR: Docker Compose plugin is required." >&2
+            exit 1
+        fi
         deploy
         ;;
  esac
