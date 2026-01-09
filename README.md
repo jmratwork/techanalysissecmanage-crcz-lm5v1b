@@ -122,12 +122,12 @@ contains the agenda steps list that KYPO expects in the **Sandbox Agenda** field
 `sandboxes/sandbox_agenda_definition.yaml`. If you upload a file with the wrapper
 structure instead of the direct list, KYPO raises the error “Expected a
 SequenceNode start”, because it expects a YAML sequence as the top-level node.
-The agenda steps sequence the topology import, provisioning playbook, and port
-checks as explicit list items. The same topology and provisioning files
-referenced in `training.yaml` are reused, so validation and packaging work
-identically while providing clearer handoff notes for instructors.
+The agenda steps **must** be a flat sequence of `- action: ...` entries (no
+`phase`/`steps` wrappers). The same topology and provisioning files referenced in
+`training.yaml` are reused, so validation and packaging work identically while
+providing clearer handoff notes for instructors.
 
-> ⚠️ **Sube únicamente `sandboxes/sandbox_agenda_ui.yaml` en el campo _Sandbox Agenda_.** No uses `sandbox_agenda_definition.yaml` en la UI de KYPO.
+> ⚠️ **Sube únicamente `sandboxes/sandbox_agenda_ui.yaml` en el campo _Sandbox Agenda_.** Debe ser una secuencia plana (lista de `- action: ...`). No uses `sandbox_agenda_definition.yaml` en la UI de KYPO.
 
 > ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`topology.yml`](topology.yml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
 >
