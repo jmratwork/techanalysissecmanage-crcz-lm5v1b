@@ -44,6 +44,8 @@ sudo subcase_1b/scripts/cyber_range_start.sh --down # stop and remove containers
 
 The accompanying `docker-compose.yml` file defines services such as a vulnerable DVWA web server, a Kali-based workstation, and the training platform.
 
+When the Docker Compose stack is running, the training platform Flask API is exposed on port `5000`. You can reach it locally at `http://localhost:5000` (for example, `POST http://localhost:5000/register`). Ensure the required environment variables (such as `LTI_TOOL_PRIVATE_KEY` and `OPENEDX_URL`) are configured for the container.
+
 ### Installing Docker on CRCZ/KYPO
 
 1. Update the package index:
