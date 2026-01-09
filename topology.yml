@@ -1,101 +1,105 @@
-name: "subcase-1b-topology"
+name: subcase-1b-topology
+
 hosts:
-  training_platform:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.2
-    services:
-      - name: ssh
-        port: 22
-      - name: course_web
-        port: 80
-  trainee_workstation:
-    image: kali
-    flavor: small
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.3
-    services:
-      - name: ssh
-        port: 22
-  cyber_range:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.4
-    services:
-      - name: ssh
-        port: 22
-      - name: dvwa
-        port: 8000
-  randomization_platform:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.5
-    services:
-      - name: ssh
-        port: 22
-      - name: randomization_eval
-        port: 8500
-  bips:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.6
-    services:
-      - name: ssh
-        port: 22
-      - name: bips
-        port: 8600
-  ng_siem:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.7
-    services:
-      - name: ssh
-        port: 22
-      - name: siem
-        port: 8700
-  cicms:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.8
-    services:
-      - name: ssh
-        port: 22
-      - name: incident_mgmt
-        port: 8800
-  ng_soar:
-    image: debian-11
-    flavor: medium
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.9
-    services:
-      - name: ssh
-        port: 22
-      - name: soar
-        port: 8900
+  - name: training-platform
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
+  - name: trainee-workstation
+    base_box:
+      image: kali
+      mgmt_user: debian
+    flavor: standard.small
+
+  - name: cyber-range
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
+  - name: randomization-platform
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
+  - name: bips
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
+  - name: ng-siem
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
+  - name: cicms
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
+  - name: ng-soar
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.medium
+
 routers:
-  router:
-    interfaces:
-      - network: training_net
-        ip: 10.10.0.1
+  - name: router
+    base_box:
+      image: debian-11
+      mgmt_user: debian
+    flavor: standard.small
+
 networks:
-  training_net:
-    prefix: 10.10.0.0/24
-base_box:
-  image: debian-11
-  users:
-    - username: kypo
-      password: kypo
+  - name: training-net
+    cidr: 10.10.0.0/24
+
+net_mappings:
+  - host: training-platform
+    network: training-net
+    ip: 10.10.0.10
+  - host: trainee-workstation
+    network: training-net
+    ip: 10.10.0.11
+  - host: cyber-range
+    network: training-net
+    ip: 10.10.0.12
+  - host: randomization-platform
+    network: training-net
+    ip: 10.10.0.13
+  - host: bips
+    network: training-net
+    ip: 10.10.0.14
+  - host: ng-siem
+    network: training-net
+    ip: 10.10.0.15
+  - host: cicms
+    network: training-net
+    ip: 10.10.0.16
+  - host: ng-soar
+    network: training-net
+    ip: 10.10.0.17
+
+router_mappings:
+  - router: router
+    network: training-net
+    ip: 10.10.0.1
+
+groups:
+  - name: training
+    nodes:
+      - training-platform
+      - trainee-workstation
+      - cyber-range
+      - randomization-platform
+      - bips
+      - ng-siem
+      - cicms
+      - ng-soar
+      - router
