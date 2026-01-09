@@ -127,6 +127,8 @@ checks as explicit list items. The same topology and provisioning files
 referenced in `training.yaml` are reused, so validation and packaging work
 identically while providing clearer handoff notes for instructors.
 
+> ⚠️ **Sube únicamente `sandboxes/sandbox_agenda_ui.yaml` en el campo _Sandbox Agenda_.** No uses `sandbox_agenda_definition.yaml` en la UI de KYPO.
+
 > ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`topology.yml`](topology.yml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
 >
 > - **Topology name**: `subcase-1b-topology`
