@@ -43,7 +43,13 @@
         name:
           - nmap
           - gvm
+          - gvm-cli
+          - zaproxy
+          - python3-pip
         state: present
+    - name: Install caldera CLI
+      pip:
+        name: caldera
 
 - hosts: cyber_range
   become: yes
