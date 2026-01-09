@@ -2,8 +2,33 @@
 version: '3.8'
 services:
   training_platform:
-    image: nginx:alpine
+    image: python:3.11-slim
     container_name: training_platform
+    working_dir: /opt/subcase_1b/training_platform
+    command:
+      [
+        "bash",
+        "-c",
+        "pip install --no-cache-dir -r /opt/subcase_1b/training_platform/requirements.txt && python3 /opt/subcase_1b/training_platform/app.py"
+      ]
+    environment:
+      LTI_TOOL_PRIVATE_KEY: "${LTI_TOOL_PRIVATE_KEY:-}"
+      OPENEDX_URL: "${OPENEDX_URL:-http://localhost:8000}"
+      OPENEDX_SESSION_COOKIE: "${OPENEDX_SESSION_COOKIE:-}"
+      OPENEDX_API_TOKEN: "${OPENEDX_API_TOKEN:-}"
+      OPENEDX_GRADEBOOK_ENDPOINT: "${OPENEDX_GRADEBOOK_ENDPOINT:-}"
+      OPENEDX_GRADEBOOK_TOKEN: "${OPENEDX_GRADEBOOK_TOKEN:-}"
+      KYPO_URL: "${KYPO_URL:-http://localhost:5000}"
+      KYPO_LTI_LAUNCH_URL: "${KYPO_LTI_LAUNCH_URL:-}"
+      LTI_CLIENT_ID: "${LTI_CLIENT_ID:-kypo-consumer}"
+      LTI_DEPLOYMENT_ID: "${LTI_DEPLOYMENT_ID:-kypo-deployment}"
+      KYPO_SUBNET: "${KYPO_SUBNET:-10.10.0.0/24}"
+      KYPO_TARGET_HOST: "${KYPO_TARGET_HOST:-http://localhost}"
+      OPENVAS_TARGET_HOST: "${OPENVAS_TARGET_HOST:-10.10.0.0/24}"
+    volumes:
+      - ./subcase_1b:/opt/subcase_1b
+    ports:
+      - "5000:5000"
     networks:
       - cyber_range
   trainee_workstation:
