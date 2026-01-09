@@ -1,23 +1,30 @@
 ---
-- hosts: cyber_range
+- hosts: all
+  become: true
+  roles:
+    - logging
+
+- hosts: cyber-range
   become: true
   roles:
     - cyber_range_setup
-    - logging
 
-- hosts: trainee_workstations
+- hosts: bips
   become: true
   roles:
     - bips
-    - logging
 
-- hosts: training_platform
+- hosts: cicms
   become: true
   roles:
     - cicms
 
-- hosts: soc_server
+- hosts: ng-siem
   become: true
   roles:
     - ng_siem
+
+- hosts: ng-soar
+  become: true
+  roles:
     - ng_soar
