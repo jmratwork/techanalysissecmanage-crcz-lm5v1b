@@ -4,6 +4,7 @@ import time
 import threading
 import subprocess
 import tempfile
+import shutil
 from flask import Flask, request, jsonify
 
 import phishing_quiz
@@ -26,6 +27,8 @@ open_edx = OpenEdXClient()
 
 # Default subnet for KYPO exercises; can be overridden with environment variable
 KYPO_SUBNET = os.getenv('KYPO_SUBNET', '10.10.0.0/24')
+KYPO_TARGET_HOST = os.getenv('KYPO_TARGET_HOST', 'http://localhost')
+OPENVAS_TARGET_HOST = os.getenv('OPENVAS_TARGET_HOST', KYPO_SUBNET)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CALDERA_PROFILE = os.path.join(BASE_DIR, '..', 'caldera_profiles', 'discovery.json')
@@ -34,10 +37,12 @@ OPENVAS_TEMPLATE = os.path.join(BASE_DIR, '..', 'openvas_task_template.xml')
 
 
 def _prepare_template(path):
-    """Return path to a temporary file with KYPO_SUBNET substituted."""
+    """Return path to a temporary file with environment substitutions."""
 
     with open(path, 'r', encoding='utf-8') as fh:
-        content = fh.read().replace('KYPO_SUBNET', KYPO_SUBNET)
+        content = fh.read()
+    content = content.replace('KYPO_SUBNET', KYPO_SUBNET)
+    content = content.replace('OPENVAS_TARGET_HOST', OPENVAS_TARGET_HOST)
     tmp = tempfile.NamedTemporaryFile(delete=False)
     tmp.write(content.encode('utf-8'))
     tmp.close()
@@ -47,12 +52,14 @@ def _prepare_template(path):
 ZAP_CONF = _prepare_template(ZAP_CONFIG)
 CALDERA_PROFILE_PATH = _prepare_template(CALDERA_PROFILE)
 with open(OPENVAS_TEMPLATE, 'r', encoding='utf-8') as fh:
-    OPENVAS_XML = fh.read().replace('KYPO_SUBNET', KYPO_SUBNET)
+    OPENVAS_XML = fh.read()
+OPENVAS_XML = OPENVAS_XML.replace('KYPO_SUBNET', KYPO_SUBNET)
+OPENVAS_XML = OPENVAS_XML.replace('OPENVAS_TARGET_HOST', OPENVAS_TARGET_HOST)
 
 
 COMMANDS = {
     'nmap': ['nmap', '-sV', KYPO_SUBNET],
-    'zap': ['zap-baseline.py', '-t', f'http://{KYPO_SUBNET}', '-c', ZAP_CONF],
+    'zap': ['zap-baseline.py', '-t', KYPO_TARGET_HOST, '-c', ZAP_CONF],
     'caldera': ['caldera', 'run', '--profile', CALDERA_PROFILE_PATH],
     'openvas': ['gvm-cli', 'socket', '--xml', OPENVAS_XML],
 }
@@ -94,6 +101,15 @@ def _run_tool(job_id, command):
     except OSError:
         # Failure to persist the file should not mark the job as failed
         pass
+
+
+def _validate_tool(command):
+    """Return (bool, error_message) based on tool availability."""
+
+    tool_name = command[0]
+    if shutil.which(tool_name):
+        return True, ''
+    return False, f"Required tool '{tool_name}' is not installed or not in PATH."
 
 
 def authenticate(token):
@@ -281,6 +297,10 @@ def launch_tool():
     command = COMMANDS.get(tool)
     if not command:
         return jsonify({'error': 'invalid tool'}), 400
+
+    ok, message = _validate_tool(command)
+    if not ok:
+        return jsonify({'error': message}), 500
 
     job_id = str(uuid.uuid4())
     jobs[job_id] = {'status': 'pending', 'tool': tool}

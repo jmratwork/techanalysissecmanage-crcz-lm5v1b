@@ -14,6 +14,9 @@ Certain scripts in this repository rely on environment variables for authenticat
 | `LTI_CLIENT_ID` | Client identifier issued by KYPO/CRCZ for the LTI integration. |
 | `LTI_DEPLOYMENT_ID` | Deployment identifier for the LTI consumer. |
 | `KYPO_LTI_LAUNCH_URL` | Endpoint used to launch KYPO/CRCZ lab sessions via LTI. |
+| `KYPO_SUBNET` | Subnet used by training platform tooling (default `10.10.0.0/24`). |
+| `KYPO_TARGET_HOST` | Full URL target used by OWASP ZAP (default `http://localhost`). |
+| `OPENVAS_TARGET_HOST` | Host or subnet passed into OpenVAS scans (default `KYPO_SUBNET`). |
 | `MISP_API_KEY` | API key used to authenticate to MISP when fetching or pushing CTI data. The startup scripts mask this value in logs and console output to avoid leaking it. |
 | `MISP_URL` | Base URL of the MISP instance (default `http://localhost:8443`). |
 
