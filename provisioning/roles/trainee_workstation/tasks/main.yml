@@ -1,0 +1,86 @@
+---
+- name: Build trainee workstation package list for {{ ansible_facts.distribution }}
+  ansible.builtin.set_fact:
+    trainee_workstation_packages_base: >-
+      {{
+        trainee_workstation_packages_by_distribution[ansible_facts.distribution]
+        | default(trainee_workstation_packages_by_distribution['Debian'] | default([]))
+      }}
+
+- name: Append optional Caldera CLI package when enabled
+  ansible.builtin.set_fact:
+    trainee_workstation_packages_effective: >-
+      {{
+        trainee_workstation_packages_base
+        + ([trainee_workstation_caldera_cli_package] if install_caldera_cli | bool else [])
+      }}
+
+- name: Install trainee workstation packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  loop: "{{ trainee_workstation_packages_effective }}"
+  register: trainee_workstation_package_install_results
+  failed_when: false
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Warn for packages unavailable in current apt repositories
+  ansible.builtin.debug:
+    msg: >-
+      Package '{{ item.item }}' is not available in configured repositories for
+      {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}.
+      Skipping it; review trainee_workstation_packages_by_distribution or repository configuration.
+  loop: "{{ trainee_workstation_package_install_results.results | default([]) }}"
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - item.failed | default(false)
+    - (item.msg | default('')) is search('No package matching|has no installation candidate')
+
+- name: Summarize unavailable trainee workstation packages
+  ansible.builtin.debug:
+    msg: >-
+      Unavailable package(s): {{ unavailable_packages | join(', ') }}.
+      Provisioning continued without them.
+  vars:
+    unavailable_packages: >-
+      {{
+        trainee_workstation_package_install_results.results
+        | default([])
+        | selectattr('failed', 'defined')
+        | selectattr('failed')
+        | selectattr('msg', 'defined')
+        | selectattr('msg', 'search', 'No package matching|has no installation candidate')
+        | map(attribute='item')
+        | list
+      }}
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - (
+        trainee_workstation_package_install_results.results
+        | default([])
+        | selectattr('failed', 'defined')
+        | selectattr('failed')
+        | selectattr('msg', 'defined')
+        | selectattr('msg', 'search', 'No package matching|has no installation candidate')
+        | list
+        | length
+      ) > 0
+
+- name: Skip package installation on unsupported OS families
+  ansible.builtin.debug:
+    msg: >-
+      trainee_workstation role currently supports Debian-family systems only.
+      Detected os_family={{ ansible_facts.os_family }}; no package actions were applied.
+  when: ansible_facts.os_family != 'Debian'
+
+- name: Fail when package installation errors are not repository availability issues
+  ansible.builtin.fail:
+    msg: >-
+      Failed to install package '{{ item.item }}': {{ item.msg | default(item.stderr | default('unknown error')) }}
+  loop: "{{ trainee_workstation_package_install_results.results | default([]) }}"
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - item.failed | default(false)
+    - not ((item.msg | default('')) is search('No package matching|has no installation candidate'))

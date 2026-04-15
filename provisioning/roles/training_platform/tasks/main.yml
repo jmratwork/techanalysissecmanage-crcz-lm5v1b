@@ -5,7 +5,6 @@
       - nginx
       - python3
       - python3-venv
-      - python3-pip
     state: present
     update_cache: yes
 

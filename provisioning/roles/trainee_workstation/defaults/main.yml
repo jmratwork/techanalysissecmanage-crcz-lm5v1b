@@ -1,0 +1,17 @@
+---
+install_caldera_cli: false
+trainee_workstation_caldera_cli_package: caldera-cli
+
+trainee_workstation_packages_by_distribution:
+  Kali:
+    - nmap
+    - gvm
+    - gvm-tools
+    - zaproxy
+    - python3-pip
+  Debian:
+    - nmap
+    - gvm
+    - gvm-tools
+    - zaproxy
+    - python3-pip
