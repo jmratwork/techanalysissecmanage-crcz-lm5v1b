@@ -9,13 +9,29 @@ bips_package_tmp_path: /tmp/bips-agent.deb
 
 bips_service_name: bips
 bips_config_path: /etc/bips/bips.conf
-
 bips_check_connectivity: false
 bips_min_free_kb: 102400
 
 bips_docker_enabled: false
 bips_docker_project_src: /opt/bips
-bips_docker_compose_template: ""
-bips_docker_env_template: ""
-bips_docker_networks: []
-bips_docker_wait_for: []
+bips_docker_compose_template: docker-compose.yml.j2
+bips_docker_env_template: bips.env.j2
+bips_docker_image: ghcr.io/example/bips
+bips_docker_tag: latest
+bips_docker_container_name: bips
+bips_docker_ports:
+  - "8081:8080"
+bips_docker_volumes: []
+bips_docker_networks:
+  - "bips_net"
+bips_docker_tls_enabled: false
+bips_docker_tls_cert_src: /etc/bips/tls/tls.crt
+bips_docker_tls_key_src: /etc/bips/tls/tls.key
+bips_docker_tls_cert_dest: /run/secrets/tls.crt
+bips_docker_tls_key_dest: /run/secrets/tls.key
+bips_docker_environment: {}
+bips_docker_runtime_env: {}
+bips_docker_wait_for:
+  - host: 127.0.0.1
+    port: 8081
+    timeout: 120
