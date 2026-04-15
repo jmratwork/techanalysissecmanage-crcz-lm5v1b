@@ -1,5 +1,6 @@
 ---
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: true
-  become: true
+- name: Apply common bootstrap for cyber range
+  ansible.builtin.include_role:
+    name: common_bootstrap
+  vars:
+    common_bootstrap_install_docker: true
