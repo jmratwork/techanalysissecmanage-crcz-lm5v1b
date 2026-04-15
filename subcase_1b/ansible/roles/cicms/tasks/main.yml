@@ -1,31 +1,60 @@
-- name: Download CICMS package
-  ansible.builtin.get_url:
-    url: "{{ ngsoar_repo_url }}/cicms/cicms-server.deb"
-    dest: "/tmp/cicms-server.deb"
-    mode: "0644"
-    checksum: "{{ cicms_server_checksum }}"
+- name: Manage CICMS component
+  when: cicms_enabled | bool
   become: yes
+  block:
+    - name: Validate CICMS installation parameters
+      ansible.builtin.assert:
+        that:
+          - cicms_install_method in ['deb']
+          - cicms_repo_url | length > 0
+          - cicms_package_path | length > 0
+          - cicms_package_checksum | length > 0
+          - not cicms_has_docker_artifacts | bool
+        fail_msg: >-
+          CICMS prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
 
-- name: Install CICMS
-  ansible.builtin.apt:
-    deb: "/tmp/cicms-server.deb"
-    state: present
-  become: yes
+    - name: Optionally validate CICMS repository connectivity
+      ansible.builtin.uri:
+        url: "{{ cicms_repo_url }}"
+        method: HEAD
+        status_code: [200, 301, 302]
+      when: cicms_check_connectivity | bool
 
-- name: Configure CICMS
-  ansible.builtin.template:
-    src: cicms.conf.j2
-    dest: /etc/cicms/config.yml
-    owner: root
-    group: root
-    mode: '0644'
-  become: yes
+    - name: Check free space for CICMS package download
+      ansible.builtin.command:
+        cmd: "df --output=avail -k /tmp"
+      changed_when: false
+      register: cicms_tmp_df
 
+    - name: Validate free space threshold for CICMS
+      ansible.builtin.assert:
+        that:
+          - (cicms_tmp_df.stdout_lines[-1] | int) >= (cicms_min_free_kb | int)
+        fail_msg: "Not enough free disk space in /tmp for CICMS package download"
 
-- name: Enable and start CICMS service
-  ansible.builtin.service:
-    name: cicms
-    state: started
-    enabled: yes
-  become: yes
+    - name: Download CICMS package
+      ansible.builtin.get_url:
+        url: "{{ cicms_repo_url ~ cicms_package_path }}"
+        dest: "{{ cicms_package_tmp_path }}"
+        mode: "0644"
+        checksum: "{{ cicms_package_checksum }}"
 
+    - name: Install CICMS
+      ansible.builtin.apt:
+        deb: "{{ cicms_package_tmp_path }}"
+        state: present
+
+    - name: Configure CICMS
+      ansible.builtin.template:
+        src: cicms.conf.j2
+        dest: "{{ cicms_config_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart cicms service
+
+    - name: Enable and start CICMS service
+      ansible.builtin.service:
+        name: "{{ cicms_service_name }}"
+        state: started
+        enabled: yes

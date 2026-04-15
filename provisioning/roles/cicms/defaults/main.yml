@@ -1,4 +1,15 @@
 ---
-# Base URL for NG-SOAR package repository. Override in inventory or group vars.
-ngsoar_repo_url: "https://packages.internal.example.com"
-cicms_server_checksum: "sha256:a2107255d861d36c8c0721417cdb878e59420853cae24e3cc92e92b8c249c174"
+cicms_enabled: true
+cicms_install_method: deb
+
+cicms_repo_url: "https://packages.internal.example.com"
+cicms_package_path: "/cicms/cicms-server.deb"
+cicms_package_checksum: "sha256:a2107255d861d36c8c0721417cdb878e59420853cae24e3cc92e92b8c249c174"
+cicms_package_tmp_path: /tmp/cicms-server.deb
+
+cicms_service_name: cicms
+cicms_config_path: /etc/cicms/config.yml
+
+cicms_check_connectivity: false
+cicms_min_free_kb: 102400
+cicms_has_docker_artifacts: false

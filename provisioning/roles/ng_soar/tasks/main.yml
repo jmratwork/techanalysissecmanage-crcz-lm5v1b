@@ -1,38 +1,69 @@
-- name: Download NG-SOAR package
-  ansible.builtin.get_url:
-    url: "{{ ngsoar_repo_url }}/ng-soar/ng-soar-platform.deb"
-    dest: "/tmp/ng-soar-platform.deb"
-    mode: "0644"
-    checksum: "{{ ng_soar_platform_checksum }}"
+- name: Manage NG-SOAR component
+  when: ng_soar_enabled | bool
   become: yes
+  block:
+    - name: Validate NG-SOAR installation parameters
+      ansible.builtin.assert:
+        that:
+          - ng_soar_install_method in ['deb']
+          - ng_soar_repo_url | length > 0
+          - ng_soar_package_path | length > 0
+          - ng_soar_package_checksum | length > 0
+          - not ng_soar_has_docker_artifacts | bool
+        fail_msg: >-
+          NG-SOAR prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
 
-- name: Install NG-SOAR
-  ansible.builtin.apt:
-    deb: "/tmp/ng-soar-platform.deb"
-    state: present
-  become: yes
+    - name: Optionally validate NG-SOAR repository connectivity
+      ansible.builtin.uri:
+        url: "{{ ng_soar_repo_url }}"
+        method: HEAD
+        status_code: [200, 301, 302]
+      when: ng_soar_check_connectivity | bool
 
-- name: Configure NG-SOAR
-  ansible.builtin.template:
-    src: ng_soar.conf.j2
-    dest: /etc/ng_soar/config.yml
-    owner: root
-    group: root
-    mode: '0644'
-  become: yes
+    - name: Check free space for NG-SOAR package download
+      ansible.builtin.command:
+        cmd: "df --output=avail -k /tmp"
+      changed_when: false
+      register: ng_soar_tmp_df
 
-- name: Deploy NG-SOAR dashboard
-  ansible.builtin.template:
-    src: ngsoar-dashboard.ndjson.j2
-    dest: /etc/ng_soar/ngsoar-dashboard.ndjson
-    owner: root
-    group: root
-    mode: '0644'
-  become: yes
+    - name: Validate free space threshold for NG-SOAR
+      ansible.builtin.assert:
+        that:
+          - (ng_soar_tmp_df.stdout_lines[-1] | int) >= (ng_soar_min_free_kb | int)
+        fail_msg: "Not enough free disk space in /tmp for NG-SOAR package download"
 
-- name: Enable and start NG-SOAR service
-  ansible.builtin.service:
-    name: ng-soar
-    state: started
-    enabled: yes
-  become: yes
+    - name: Download NG-SOAR package
+      ansible.builtin.get_url:
+        url: "{{ ng_soar_repo_url ~ ng_soar_package_path }}"
+        dest: "{{ ng_soar_package_tmp_path }}"
+        mode: "0644"
+        checksum: "{{ ng_soar_package_checksum }}"
+
+    - name: Install NG-SOAR
+      ansible.builtin.apt:
+        deb: "{{ ng_soar_package_tmp_path }}"
+        state: present
+
+    - name: Configure NG-SOAR
+      ansible.builtin.template:
+        src: ng_soar.conf.j2
+        dest: "{{ ng_soar_config_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart ng_soar service
+
+    - name: Deploy NG-SOAR dashboard
+      ansible.builtin.template:
+        src: ngsoar-dashboard.ndjson.j2
+        dest: "{{ ng_soar_dashboard_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart ng_soar service
+
+    - name: Enable and start NG-SOAR service
+      ansible.builtin.service:
+        name: "{{ ng_soar_service_name }}"
+        state: started
+        enabled: yes
