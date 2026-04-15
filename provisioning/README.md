@@ -10,4 +10,4 @@ Use the bundled inventory and playbook from the repository root:
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
 
-The inventory groups map to the training platform, trainee workstation, SOC server, and the combined `cyber_range` group defined in `inventory.ini`.
+The inventory groups map 1:1 with the topology hostnames using snake_case (`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`).

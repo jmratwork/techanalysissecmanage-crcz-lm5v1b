@@ -1,25 +1,25 @@
-name: subcase-1b-topology
+name: subcase_1b_topology
 
 hosts:
-  - name: training-platform
+  - name: training_platform
     base_box:
       image: debian-11
       mgmt_user: debian
     flavor: standard.medium
 
-  - name: trainee-workstation
+  - name: trainee_workstation
     base_box:
       image: kali
       mgmt_user: debian
     flavor: standard.small
 
-  - name: cyber-range
+  - name: cyber_range
     base_box:
       image: debian-11
       mgmt_user: debian
     flavor: standard.medium
 
-  - name: randomization-platform
+  - name: randomization_platform
     base_box:
       image: debian-11
       mgmt_user: debian
@@ -31,7 +31,7 @@ hosts:
       mgmt_user: debian
     flavor: standard.medium
 
-  - name: ng-siem
+  - name: ng_siem
     base_box:
       image: debian-11
       mgmt_user: debian
@@ -43,7 +43,7 @@ hosts:
       mgmt_user: debian
     flavor: standard.medium
 
-  - name: ng-soar
+  - name: ng_soar
     base_box:
       image: debian-11
       mgmt_user: debian
@@ -57,49 +57,49 @@ routers:
     flavor: standard.small
 
 networks:
-  - name: training-net
+  - name: training_net
     cidr: 10.10.0.0/24
 
 net_mappings:
-  - host: training-platform
-    network: training-net
+  - host: training_platform
+    network: training_net
     ip: 10.10.0.10
-  - host: trainee-workstation
-    network: training-net
+  - host: trainee_workstation
+    network: training_net
     ip: 10.10.0.11
-  - host: cyber-range
-    network: training-net
+  - host: cyber_range
+    network: training_net
     ip: 10.10.0.12
-  - host: randomization-platform
-    network: training-net
+  - host: randomization_platform
+    network: training_net
     ip: 10.10.0.13
   - host: bips
-    network: training-net
+    network: training_net
     ip: 10.10.0.14
-  - host: ng-siem
-    network: training-net
+  - host: ng_siem
+    network: training_net
     ip: 10.10.0.15
   - host: cicms
-    network: training-net
+    network: training_net
     ip: 10.10.0.16
-  - host: ng-soar
-    network: training-net
+  - host: ng_soar
+    network: training_net
     ip: 10.10.0.17
 
 router_mappings:
   - router: router
-    network: training-net
+    network: training_net
     ip: 10.10.0.1
 
 groups:
   - name: training
     nodes:
-      - training-platform
-      - trainee-workstation
-      - cyber-range
-      - randomization-platform
+      - training_platform
+      - trainee_workstation
+      - cyber_range
+      - randomization_platform
       - bips
-      - ng-siem
+      - ng_siem
       - cicms
-      - ng-soar
+      - ng_soar
       - router
