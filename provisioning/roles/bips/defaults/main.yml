@@ -1,4 +1,15 @@
 ---
-# Base URL for NG-SOAR package repository. Override in inventory or group vars.
-ngsoar_repo_url: "https://packages.internal.example.com"
-bips_agent_checksum: "sha256:6c85a96bf3dc07d5dc4186d49ea6ab77f06e082d4c88b8221ebfbd820c2af78e"
+bips_enabled: true
+bips_install_method: deb
+
+bips_repo_url: "https://packages.internal.example.com"
+bips_package_path: "/bips/bips-agent.deb"
+bips_package_checksum: "sha256:6c85a96bf3dc07d5dc4186d49ea6ab77f06e082d4c88b8221ebfbd820c2af78e"
+bips_package_tmp_path: /tmp/bips-agent.deb
+
+bips_service_name: bips
+bips_config_path: /etc/bips/bips.conf
+
+bips_check_connectivity: false
+bips_min_free_kb: 102400
+bips_has_docker_artifacts: false

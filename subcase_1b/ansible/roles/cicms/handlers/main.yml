@@ -1,0 +1,6 @@
+---
+- name: restart cicms service
+  ansible.builtin.service:
+    name: "{{ cicms_service_name }}"
+    state: restarted
+  become: yes

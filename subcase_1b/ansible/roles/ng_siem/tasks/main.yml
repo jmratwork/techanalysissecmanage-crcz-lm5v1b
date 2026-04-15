@@ -1,38 +1,69 @@
-- name: Download NG-SIEM package
-  ansible.builtin.get_url:
-    url: "{{ ngsoar_repo_url }}/ng-siem/ng-siem-server.deb"
-    dest: "/tmp/ng-siem-server.deb"
-    mode: "0644"
-    checksum: "{{ ng_siem_server_checksum }}"
+- name: Manage NG-SIEM component
+  when: ng_siem_enabled | bool
   become: yes
+  block:
+    - name: Validate NG-SIEM installation parameters
+      ansible.builtin.assert:
+        that:
+          - ng_siem_install_method in ['deb']
+          - ng_siem_repo_url | length > 0
+          - ng_siem_package_path | length > 0
+          - ng_siem_package_checksum | length > 0
+          - not ng_siem_has_docker_artifacts | bool
+        fail_msg: >-
+          NG-SIEM prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
 
-- name: Install NG-SIEM
-  ansible.builtin.apt:
-    deb: "/tmp/ng-siem-server.deb"
-    state: present
-  become: yes
+    - name: Optionally validate NG-SIEM repository connectivity
+      ansible.builtin.uri:
+        url: "{{ ng_siem_repo_url }}"
+        method: HEAD
+        status_code: [200, 301, 302]
+      when: ng_siem_check_connectivity | bool
 
-- name: Configure NG-SIEM
-  ansible.builtin.template:
-    src: ng_siem.conf.j2
-    dest: /etc/ng_siem/config.yml
-    owner: root
-    group: root
-    mode: '0644'
-  become: yes
+    - name: Check free space for NG-SIEM package download
+      ansible.builtin.command:
+        cmd: "df --output=avail -k /tmp"
+      changed_when: false
+      register: ng_siem_tmp_df
 
-- name: Configure Filebeat
-  ansible.builtin.template:
-    src: filebeat.yml.j2
-    dest: /etc/ng_siem/filebeat.yml
-    owner: root
-    group: root
-    mode: '0644'
-  become: yes
+    - name: Validate free space threshold for NG-SIEM
+      ansible.builtin.assert:
+        that:
+          - (ng_siem_tmp_df.stdout_lines[-1] | int) >= (ng_siem_min_free_kb | int)
+        fail_msg: "Not enough free disk space in /tmp for NG-SIEM package download"
 
-- name: Enable and start NG-SIEM service
-  ansible.builtin.service:
-    name: ng-siem
-    state: started
-    enabled: yes
-  become: yes
+    - name: Download NG-SIEM package
+      ansible.builtin.get_url:
+        url: "{{ ng_siem_repo_url ~ ng_siem_package_path }}"
+        dest: "{{ ng_siem_package_tmp_path }}"
+        mode: "0644"
+        checksum: "{{ ng_siem_package_checksum }}"
+
+    - name: Install NG-SIEM
+      ansible.builtin.apt:
+        deb: "{{ ng_siem_package_tmp_path }}"
+        state: present
+
+    - name: Configure NG-SIEM
+      ansible.builtin.template:
+        src: ng_siem.conf.j2
+        dest: "{{ ng_siem_config_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart ng_siem service
+
+    - name: Configure Filebeat
+      ansible.builtin.template:
+        src: filebeat.yml.j2
+        dest: "{{ ng_siem_filebeat_config_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart ng_siem service
+
+    - name: Enable and start NG-SIEM service
+      ansible.builtin.service:
+        name: "{{ ng_siem_service_name }}"
+        state: started
+        enabled: yes

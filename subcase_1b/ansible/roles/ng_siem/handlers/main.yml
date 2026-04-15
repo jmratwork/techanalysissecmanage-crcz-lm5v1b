@@ -1,0 +1,6 @@
+---
+- name: restart ng_siem service
+  ansible.builtin.service:
+    name: "{{ ng_siem_service_name }}"
+    state: restarted
+  become: yes

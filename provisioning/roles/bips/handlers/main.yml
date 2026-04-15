@@ -1,0 +1,6 @@
+---
+- name: restart bips service
+  ansible.builtin.service:
+    name: "{{ bips_service_name }}"
+    state: restarted
+  become: yes

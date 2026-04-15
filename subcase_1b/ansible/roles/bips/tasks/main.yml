@@ -1,29 +1,60 @@
-- name: Download BIPS package
-  ansible.builtin.get_url:
-    url: "{{ ngsoar_repo_url }}/bips/bips-agent.deb"
-    dest: "/tmp/bips-agent.deb"
-    mode: "0644"
-    checksum: "{{ bips_agent_checksum }}"
+- name: Manage BIPS component
+  when: bips_enabled | bool
   become: yes
+  block:
+    - name: Validate BIPS installation parameters
+      ansible.builtin.assert:
+        that:
+          - bips_install_method in ['deb']
+          - bips_repo_url | length > 0
+          - bips_package_path | length > 0
+          - bips_package_checksum | length > 0
+          - not bips_has_docker_artifacts | bool
+        fail_msg: >-
+          BIPS prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
 
-- name: Install BIPS
-  ansible.builtin.apt:
-    deb: "/tmp/bips-agent.deb"
-    state: present
-  become: yes
+    - name: Optionally validate BIPS repository connectivity
+      ansible.builtin.uri:
+        url: "{{ bips_repo_url }}"
+        method: HEAD
+        status_code: [200, 301, 302]
+      when: bips_check_connectivity | bool
 
-- name: Configure BIPS
-  ansible.builtin.template:
-    src: bips.conf.j2
-    dest: /etc/bips/bips.conf
-    owner: root
-    group: root
-    mode: '0644'
-  become: yes
+    - name: Check free space for BIPS package download
+      ansible.builtin.command:
+        cmd: "df --output=avail -k /tmp"
+      changed_when: false
+      register: bips_tmp_df
 
-- name: Enable and start BIPS service
-  ansible.builtin.service:
-    name: bips
-    state: started
-    enabled: yes
-  become: yes
+    - name: Validate free space threshold for BIPS
+      ansible.builtin.assert:
+        that:
+          - (bips_tmp_df.stdout_lines[-1] | int) >= (bips_min_free_kb | int)
+        fail_msg: "Not enough free disk space in /tmp for BIPS package download"
+
+    - name: Download BIPS package
+      ansible.builtin.get_url:
+        url: "{{ bips_repo_url ~ bips_package_path }}"
+        dest: "{{ bips_package_tmp_path }}"
+        mode: "0644"
+        checksum: "{{ bips_package_checksum }}"
+
+    - name: Install BIPS
+      ansible.builtin.apt:
+        deb: "{{ bips_package_tmp_path }}"
+        state: present
+
+    - name: Configure BIPS
+      ansible.builtin.template:
+        src: bips.conf.j2
+        dest: "{{ bips_config_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart bips service
+
+    - name: Enable and start BIPS service
+      ansible.builtin.service:
+        name: "{{ bips_service_name }}"
+        state: started
+        enabled: yes
