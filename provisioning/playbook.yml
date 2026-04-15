@@ -4,7 +4,7 @@
   roles:
     - logging
 
-- hosts: cyber-range
+- hosts: cyber_range
   become: true
   roles:
     - cyber_range_setup
@@ -19,12 +19,12 @@
   roles:
     - cicms
 
-- hosts: ng-siem
+- hosts: ng_siem
   become: true
   roles:
     - ng_siem
 
-- hosts: ng-soar
+- hosts: ng_soar
   become: true
   roles:
     - ng_soar

@@ -5,7 +5,7 @@
     - cyber_range_setup
     - logging
 
-- hosts: trainee_workstations
+- hosts: trainee_workstation
   become: true
   roles:
     - bips
@@ -16,8 +16,12 @@
   roles:
     - cicms
 
-- hosts: soc_server
+- hosts: ng_siem
   become: true
   roles:
     - ng_siem
+
+- hosts: ng_soar
+  become: true
+  roles:
     - ng_soar
