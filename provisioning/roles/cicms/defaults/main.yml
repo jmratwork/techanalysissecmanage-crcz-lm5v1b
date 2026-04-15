@@ -24,7 +24,8 @@ cicms_docker_ports:
 cicms_docker_volumes: []
 cicms_docker_networks:
   - "cicms_net"
-cicms_docker_tls_enabled: false
+cicms_docker_tls_enabled: true
+# Safe by default; override in inventory (for labs/dev) if needed.
 cicms_docker_tls_cert_src: /etc/cicms/tls/tls.crt
 cicms_docker_tls_key_src: /etc/cicms/tls/tls.key
 cicms_docker_tls_cert_dest: /run/secrets/tls.crt

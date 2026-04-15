@@ -26,7 +26,8 @@ ng_siem_docker_ports:
 ng_siem_docker_volumes: []
 ng_siem_docker_networks:
   - "ng_siem_net"
-ng_siem_docker_tls_enabled: false
+ng_siem_docker_tls_enabled: true
+# Safe by default; override in inventory (for labs/dev) if needed.
 ng_siem_docker_tls_cert_src: /etc/ng_siem/tls/tls.crt
 ng_siem_docker_tls_key_src: /etc/ng_siem/tls/tls.key
 ng_siem_docker_tls_cert_dest: /run/secrets/tls.crt
