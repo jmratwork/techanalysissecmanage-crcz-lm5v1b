@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  bips:
+    image: "{{ bips_docker_image }}:{{ bips_docker_tag }}"
+    container_name: "{{ bips_docker_container_name }}"
+    restart: unless-stopped
+    env_file:
+      - .env
+{% if bips_docker_ports | length > 0 %}
+    ports:
+{% for port in bips_docker_ports %}
+      - "{{ port }}"
+{% endfor %}
+{% endif %}
+{% if (bips_docker_volumes | length > 0) or (bips_docker_tls_enabled | bool) %}
+    volumes:
+{% for volume in bips_docker_volumes %}
+      - "{{ volume }}"
+{% endfor %}
+{% if bips_docker_tls_enabled | bool %}
+      - "{{ bips_docker_tls_cert_src }}:{{ bips_docker_tls_cert_dest }}:ro"
+      - "{{ bips_docker_tls_key_src }}:{{ bips_docker_tls_key_dest }}:ro"
+{% endif %}
+{% endif %}
+{% if bips_docker_networks | length > 0 %}
+    networks:
+{% for network_name in bips_docker_networks %}
+      - "{{ network_name }}"
+{% endfor %}
+{% endif %}
+    environment:
+      TLS_ENABLED: "{{ bips_docker_tls_enabled | ternary('true', 'false') }}"
+{% for env_name, env_value in bips_docker_environment.items() %}
+      {{ env_name }}: "{{ env_value }}"
+{% endfor %}
+
+{% if bips_docker_networks | length > 0 %}
+networks:
+{% for network_name in bips_docker_networks %}
+  {{ network_name }}:
+    external: true
+{% endfor %}
+{% endif %}

@@ -9,13 +9,29 @@ cicms_package_tmp_path: /tmp/cicms-server.deb
 
 cicms_service_name: cicms
 cicms_config_path: /etc/cicms/config.yml
-
 cicms_check_connectivity: false
 cicms_min_free_kb: 102400
 
 cicms_docker_enabled: false
 cicms_docker_project_src: /opt/cicms
-cicms_docker_compose_template: ""
-cicms_docker_env_template: ""
-cicms_docker_networks: []
-cicms_docker_wait_for: []
+cicms_docker_compose_template: docker-compose.yml.j2
+cicms_docker_env_template: cicms.env.j2
+cicms_docker_image: ghcr.io/example/cicms
+cicms_docker_tag: latest
+cicms_docker_container_name: cicms
+cicms_docker_ports:
+  - "8080:8080"
+cicms_docker_volumes: []
+cicms_docker_networks:
+  - "cicms_net"
+cicms_docker_tls_enabled: false
+cicms_docker_tls_cert_src: /etc/cicms/tls/tls.crt
+cicms_docker_tls_key_src: /etc/cicms/tls/tls.key
+cicms_docker_tls_cert_dest: /run/secrets/tls.crt
+cicms_docker_tls_key_dest: /run/secrets/tls.key
+cicms_docker_environment: {}
+cicms_docker_runtime_env: {}
+cicms_docker_wait_for:
+  - host: 127.0.0.1
+    port: 8080
+    timeout: 120

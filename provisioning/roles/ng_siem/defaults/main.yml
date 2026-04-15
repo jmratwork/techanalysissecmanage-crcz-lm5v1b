@@ -16,7 +16,24 @@ ng_siem_min_free_kb: 102400
 
 ng_siem_docker_enabled: false
 ng_siem_docker_project_src: /opt/ng_siem
-ng_siem_docker_compose_template: ""
-ng_siem_docker_env_template: ""
-ng_siem_docker_networks: []
-ng_siem_docker_wait_for: []
+ng_siem_docker_compose_template: docker-compose.yml.j2
+ng_siem_docker_env_template: ng_siem.env.j2
+ng_siem_docker_image: ghcr.io/example/ng-siem
+ng_siem_docker_tag: latest
+ng_siem_docker_container_name: ng_siem
+ng_siem_docker_ports:
+  - "5601:5601"
+ng_siem_docker_volumes: []
+ng_siem_docker_networks:
+  - "ng_siem_net"
+ng_siem_docker_tls_enabled: false
+ng_siem_docker_tls_cert_src: /etc/ng_siem/tls/tls.crt
+ng_siem_docker_tls_key_src: /etc/ng_siem/tls/tls.key
+ng_siem_docker_tls_cert_dest: /run/secrets/tls.crt
+ng_siem_docker_tls_key_dest: /run/secrets/tls.key
+ng_siem_docker_environment: {}
+ng_siem_docker_runtime_env: {}
+ng_siem_docker_wait_for:
+  - host: 127.0.0.1
+    port: 5601
+    timeout: 120

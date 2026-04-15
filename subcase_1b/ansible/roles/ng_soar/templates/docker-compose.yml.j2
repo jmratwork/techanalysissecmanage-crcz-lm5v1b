@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  ng_soar:
+    image: "{{ ng_soar_docker_image }}:{{ ng_soar_docker_tag }}"
+    container_name: "{{ ng_soar_docker_container_name }}"
+    restart: unless-stopped
+    env_file:
+      - .env
+{% if ng_soar_docker_ports | length > 0 %}
+    ports:
+{% for port in ng_soar_docker_ports %}
+      - "{{ port }}"
+{% endfor %}
+{% endif %}
+{% if (ng_soar_docker_volumes | length > 0) or (ng_soar_docker_tls_enabled | bool) %}
+    volumes:
+{% for volume in ng_soar_docker_volumes %}
+      - "{{ volume }}"
+{% endfor %}
+{% if ng_soar_docker_tls_enabled | bool %}
+      - "{{ ng_soar_docker_tls_cert_src }}:{{ ng_soar_docker_tls_cert_dest }}:ro"
+      - "{{ ng_soar_docker_tls_key_src }}:{{ ng_soar_docker_tls_key_dest }}:ro"
+{% endif %}
+{% endif %}
+{% if ng_soar_docker_networks | length > 0 %}
+    networks:
+{% for network_name in ng_soar_docker_networks %}
+      - "{{ network_name }}"
+{% endfor %}
+{% endif %}
+    environment:
+      TLS_ENABLED: "{{ ng_soar_docker_tls_enabled | ternary('true', 'false') }}"
+{% for env_name, env_value in ng_soar_docker_environment.items() %}
+      {{ env_name }}: "{{ env_value }}"
+{% endfor %}
+
+{% if ng_soar_docker_networks | length > 0 %}
+networks:
+{% for network_name in ng_soar_docker_networks %}
+  {{ network_name }}:
+    external: true
+{% endfor %}
+{% endif %}
