@@ -22,7 +22,7 @@ ng_siem_docker_image: ghcr.io/example/ng-siem
 ng_siem_docker_tag: latest
 ng_siem_docker_container_name: ng_siem
 ng_siem_docker_ports:
-  - "5601:5601"
+  - "8700:5601"
 ng_siem_docker_volumes: []
 ng_siem_docker_networks:
   - "ng_siem_net"
@@ -35,7 +35,7 @@ ng_siem_docker_environment: {}
 ng_siem_docker_runtime_env: {}
 ng_siem_docker_wait_for:
   - host: 127.0.0.1
-    port: 5601
+    port: 8700
     timeout: 120
 
 ng_siem_docker_healthcheck_url: ""
