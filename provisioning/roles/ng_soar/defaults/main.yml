@@ -18,8 +18,8 @@ ng_soar_docker_enabled: false
 ng_soar_docker_project_src: /opt/ng_soar
 ng_soar_docker_compose_template: docker-compose.yml.j2
 ng_soar_docker_env_template: ng_soar.env.j2
-ng_soar_docker_image: ghcr.io/example/ng-soar
-ng_soar_docker_tag: latest
+ng_soar_docker_image: '__REQUIRED_DOCKER_IMAGE__'
+ng_soar_docker_tag: '__REQUIRED_DOCKER_TAG__'
 ng_soar_docker_container_name: ng_soar
 ng_soar_docker_ports:
   - "8900:8443"

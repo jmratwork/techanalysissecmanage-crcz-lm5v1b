@@ -18,8 +18,8 @@ ng_siem_docker_enabled: false
 ng_siem_docker_project_src: /opt/ng_siem
 ng_siem_docker_compose_template: docker-compose.yml.j2
 ng_siem_docker_env_template: ng_siem.env.j2
-ng_siem_docker_image: ghcr.io/example/ng-siem
-ng_siem_docker_tag: latest
+ng_siem_docker_image: '__REQUIRED_DOCKER_IMAGE__'
+ng_siem_docker_tag: '__REQUIRED_DOCKER_TAG__'
 ng_siem_docker_container_name: ng_siem
 ng_siem_docker_ports:
   - "5601:5601"

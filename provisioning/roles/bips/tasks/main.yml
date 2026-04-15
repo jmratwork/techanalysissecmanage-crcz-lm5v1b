@@ -12,7 +12,7 @@
           - bips_install_method != 'docker' or bips_docker_enabled | bool
           - bips_install_method != 'docker' or bips_docker_project_src | length > 0
         fail_msg: >-
-          BIPS prerequisites failed. Validate install_method and required package/Docker variables.
+          BIPS prerequisites failed. Validate install_method and required package/Docker variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
 
     - name: BIPS deb installation flow
       when: bips_install_method == 'deb'
@@ -74,8 +74,12 @@
               - bips_docker_env_template | length > 0
               - bips_docker_networks is iterable
               - bips_docker_wait_for is iterable
+              - bips_docker_image | length > 0
+              - bips_docker_tag | length > 0
+              - bips_docker_image != '__REQUIRED_DOCKER_IMAGE__'
+              - bips_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              BIPS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+              BIPS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
 
         - name: Ensure BIPS Docker project directory exists
           ansible.builtin.file:

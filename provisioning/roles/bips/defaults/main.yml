@@ -16,8 +16,8 @@ bips_docker_enabled: false
 bips_docker_project_src: /opt/bips
 bips_docker_compose_template: docker-compose.yml.j2
 bips_docker_env_template: bips.env.j2
-bips_docker_image: ghcr.io/example/bips
-bips_docker_tag: latest
+bips_docker_image: '__REQUIRED_DOCKER_IMAGE__'
+bips_docker_tag: '__REQUIRED_DOCKER_TAG__'
 bips_docker_container_name: bips
 bips_docker_ports:
   - "8600:8080"
