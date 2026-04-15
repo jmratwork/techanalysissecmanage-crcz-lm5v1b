@@ -12,7 +12,7 @@
           - ng_siem_install_method != 'docker' or ng_siem_docker_enabled | bool
           - ng_siem_install_method != 'docker' or ng_siem_docker_project_src | length > 0
         fail_msg: >-
-          NG-SIEM prerequisites failed. Validate install_method and required package/Docker variables.
+          NG-SIEM prerequisites failed. Validate install_method and required package/Docker variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
 
     - name: NG-SIEM deb installation flow
       when: ng_siem_install_method == 'deb'
@@ -83,8 +83,12 @@
               - ng_siem_docker_env_template | length > 0
               - ng_siem_docker_networks is iterable
               - ng_siem_docker_wait_for is iterable
+              - ng_siem_docker_image | length > 0
+              - ng_siem_docker_tag | length > 0
+              - ng_siem_docker_image != '__REQUIRED_DOCKER_IMAGE__'
+              - ng_siem_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              NG-SIEM Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+              NG-SIEM Docker prerequisites failed. Validate project path, templates, networks and wait_for variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
 
         - name: Ensure NG-SIEM Docker project directory exists
           ansible.builtin.file:

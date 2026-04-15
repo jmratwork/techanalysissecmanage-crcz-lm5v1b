@@ -12,7 +12,7 @@
           - cicms_install_method != 'docker' or cicms_docker_enabled | bool
           - cicms_install_method != 'docker' or cicms_docker_project_src | length > 0
         fail_msg: >-
-          CICMS prerequisites failed. Validate install_method and required package/Docker variables.
+          CICMS prerequisites failed. Validate install_method and required package/Docker variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
 
     - name: CICMS deb installation flow
       when: cicms_install_method == 'deb'
@@ -74,8 +74,12 @@
               - cicms_docker_env_template | length > 0
               - cicms_docker_networks is iterable
               - cicms_docker_wait_for is iterable
+              - cicms_docker_image | length > 0
+              - cicms_docker_tag | length > 0
+              - cicms_docker_image != '__REQUIRED_DOCKER_IMAGE__'
+              - cicms_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              CICMS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+              CICMS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
 
         - name: Ensure CICMS Docker project directory exists
           ansible.builtin.file:
