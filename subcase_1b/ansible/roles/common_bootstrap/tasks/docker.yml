@@ -1,0 +1,81 @@
+---
+- name: Ensure Docker apt keyring directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Install Docker apt GPG key
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/{{ ansible_facts.distribution | lower }}/gpg"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Configure Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ common_bootstrap_docker_apt_arch_map[ansible_facts.architecture] | default('amd64') }}
+      signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/{{ ansible_facts.distribution | lower }}
+      {{ ansible_facts.distribution_release }} stable
+    state: present
+    filename: docker
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - ansible_facts.distribution in ['Debian', 'Ubuntu']
+
+- name: Configure Docker yum repository for Fedora
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/fedora/$releasever/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/fedora/gpg
+  when: ansible_facts.distribution == 'Fedora'
+
+- name: Configure Docker yum repository for RedHat-based distributions
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - ansible_facts.distribution != 'Fedora'
+
+- name: Refresh apt cache after Docker repository configuration
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Ensure supported distribution for Docker bootstrap
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.os_family in ['Debian', 'RedHat']
+    fail_msg: >-
+      Docker bootstrap role currently supports Debian and RedHat families.
+      Detected {{ ansible_facts.os_family }} / {{ ansible_facts.distribution }}.
+
+- name: Install Docker Engine and plugins
+  ansible.builtin.package:
+    name: "{{ common_bootstrap_docker_packages }}"
+    state: present
+
+- name: Ensure Docker service is enabled and started
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  when: common_bootstrap_manage_docker_service | bool
+
+- name: Add configured users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ common_bootstrap_docker_users }}"

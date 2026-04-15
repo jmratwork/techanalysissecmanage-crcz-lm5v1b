@@ -12,19 +12,31 @@
 - hosts: bips
   become: true
   roles:
+    - role: common_bootstrap
+      vars:
+        common_bootstrap_install_docker: true
     - bips
 
 - hosts: cicms
   become: true
   roles:
+    - role: common_bootstrap
+      vars:
+        common_bootstrap_install_docker: true
     - cicms
 
 - hosts: ng_siem
   become: true
   roles:
+    - role: common_bootstrap
+      vars:
+        common_bootstrap_install_docker: true
     - ng_siem
 
 - hosts: ng_soar
   become: true
   roles:
+    - role: common_bootstrap
+      vars:
+        common_bootstrap_install_docker: true
     - ng_soar

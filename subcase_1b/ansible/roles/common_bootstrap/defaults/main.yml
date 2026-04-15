@@ -1,0 +1,29 @@
+---
+common_bootstrap_base_packages:
+  Debian:
+    - ca-certificates
+    - curl
+    - gnupg
+  RedHat:
+    - ca-certificates
+    - curl
+  Suse:
+    - ca-certificates
+    - curl
+
+common_bootstrap_install_docker: false
+common_bootstrap_manage_docker_service: true
+common_bootstrap_docker_users: []
+
+common_bootstrap_docker_apt_arch_map:
+  x86_64: amd64
+  amd64: amd64
+  aarch64: arm64
+  arm64: arm64
+
+common_bootstrap_docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
