@@ -20,7 +20,7 @@ bips_docker_image: ghcr.io/example/bips
 bips_docker_tag: latest
 bips_docker_container_name: bips
 bips_docker_ports:
-  - "8081:8080"
+  - "8600:8080"
 bips_docker_volumes: []
 bips_docker_networks:
   - "bips_net"
@@ -33,7 +33,7 @@ bips_docker_environment: {}
 bips_docker_runtime_env: {}
 bips_docker_wait_for:
   - host: 127.0.0.1
-    port: 8081
+    port: 8600
     timeout: 120
 
 bips_docker_healthcheck_url: ""

@@ -20,7 +20,7 @@ cicms_docker_image: ghcr.io/example/cicms
 cicms_docker_tag: latest
 cicms_docker_container_name: cicms
 cicms_docker_ports:
-  - "8080:8080"
+  - "8800:8080"
 cicms_docker_volumes: []
 cicms_docker_networks:
   - "cicms_net"
@@ -33,7 +33,7 @@ cicms_docker_environment: {}
 cicms_docker_runtime_env: {}
 cicms_docker_wait_for:
   - host: 127.0.0.1
-    port: 8080
+    port: 8800
     timeout: 120
 
 cicms_docker_healthcheck_url: ""

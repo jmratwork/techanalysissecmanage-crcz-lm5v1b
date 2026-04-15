@@ -22,7 +22,7 @@ ng_soar_docker_image: ghcr.io/example/ng-soar
 ng_soar_docker_tag: latest
 ng_soar_docker_container_name: ng_soar
 ng_soar_docker_ports:
-  - "8443:8443"
+  - "8900:8443"
 ng_soar_docker_volumes: []
 ng_soar_docker_networks:
   - "ng_soar_net"
@@ -35,7 +35,7 @@ ng_soar_docker_environment: {}
 ng_soar_docker_runtime_env: {}
 ng_soar_docker_wait_for:
   - host: 127.0.0.1
-    port: 8443
+    port: 8900
     timeout: 120
 
 ng_soar_docker_healthcheck_url: ""
