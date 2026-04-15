@@ -37,3 +37,11 @@ ng_siem_docker_wait_for:
   - host: 127.0.0.1
     port: 5601
     timeout: 120
+
+ng_siem_docker_healthcheck_url: ""
+ng_siem_docker_healthcheck_method: GET
+ng_siem_docker_healthcheck_status:
+  - 200
+ng_siem_docker_healthcheck_validate_certs: false
+ng_siem_docker_healthcheck_retries: 10
+ng_siem_docker_healthcheck_delay: 5

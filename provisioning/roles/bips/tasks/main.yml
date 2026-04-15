@@ -66,6 +66,17 @@
     - name: BIPS docker installation flow
       when: bips_install_method == 'docker'
       block:
+        - name: Validate BIPS Docker prerequisites
+          ansible.builtin.assert:
+            that:
+              - bips_docker_project_src | length > 0
+              - bips_docker_compose_template | length > 0
+              - bips_docker_env_template | length > 0
+              - bips_docker_networks is iterable
+              - bips_docker_wait_for is iterable
+            fail_msg: >-
+              BIPS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+
         - name: Ensure BIPS Docker project directory exists
           ansible.builtin.file:
             path: "{{ bips_docker_project_src }}"
@@ -81,7 +92,6 @@
             owner: root
             group: root
             mode: '0644'
-          when: bips_docker_compose_template | length > 0
 
         - name: Render BIPS Docker env file
           ansible.builtin.template:
@@ -90,24 +100,43 @@
             owner: root
             group: root
             mode: '0640'
-          when: bips_docker_env_template | length > 0
 
         - name: Ensure BIPS Docker networks exist
-          ansible.builtin.command:
-            cmd: "docker network create {{ item }}"
-          register: bips_docker_network_create
-          changed_when: bips_docker_network_create.rc == 0
-          failed_when: bips_docker_network_create.rc != 0 and 'already exists' not in (bips_docker_network_create.stderr | lower)
-          loop: "{{ bips_docker_networks }}"
+          community.docker.docker_network:
+            name: "{{ item }}"
+            state: present
+          loop: "{{ bips_docker_networks | default([]) }}"
 
-        - name: Start BIPS Docker stack
-          ansible.builtin.command:
-            cmd: docker compose up -d
-            chdir: "{{ bips_docker_project_src }}"
+        - name: Deploy BIPS Docker stack
+          community.docker.docker_compose_v2:
+            project_src: "{{ bips_docker_project_src }}"
+            state: present
+          register: bips_docker_compose_result
 
         - name: Wait for BIPS Docker endpoints
           ansible.builtin.wait_for:
             host: "{{ item.host | default('127.0.0.1') }}"
             port: "{{ item.port }}"
             timeout: "{{ item.timeout | default(120) }}"
-          loop: "{{ bips_docker_wait_for }}"
+          loop: "{{ bips_docker_wait_for | default([]) }}"
+          when: (bips_docker_wait_for | default([])) | length > 0
+
+        - name: Validate BIPS Docker health endpoint
+          ansible.builtin.uri:
+            url: "{{ bips_docker_healthcheck_url }}"
+            method: "{{ bips_docker_healthcheck_method }}"
+            status_code: "{{ bips_docker_healthcheck_status | default([200]) }}"
+            validate_certs: "{{ bips_docker_healthcheck_validate_certs }}"
+          register: bips_docker_healthcheck_result
+          retries: "{{ bips_docker_healthcheck_retries }}"
+          delay: "{{ bips_docker_healthcheck_delay }}"
+          until: bips_docker_healthcheck_result is succeeded
+          when: (bips_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Debug BIPS deployment summary
+          ansible.builtin.debug:
+            msg:
+              service: BIPS
+              method: "{{ bips_install_method }}"
+              compose_path: "{{ bips_docker_project_src }}/docker-compose.yml"
+              compose_result: "{{ bips_docker_compose_result.actions | default(bips_docker_compose_result.changed) }}"

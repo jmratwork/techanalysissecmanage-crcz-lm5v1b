@@ -35,3 +35,11 @@ bips_docker_wait_for:
   - host: 127.0.0.1
     port: 8081
     timeout: 120
+
+bips_docker_healthcheck_url: ""
+bips_docker_healthcheck_method: GET
+bips_docker_healthcheck_status:
+  - 200
+bips_docker_healthcheck_validate_certs: false
+bips_docker_healthcheck_retries: 10
+bips_docker_healthcheck_delay: 5
