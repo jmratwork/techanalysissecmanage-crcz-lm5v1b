@@ -66,6 +66,17 @@
     - name: CICMS docker installation flow
       when: cicms_install_method == 'docker'
       block:
+        - name: Validate CICMS Docker prerequisites
+          ansible.builtin.assert:
+            that:
+              - cicms_docker_project_src | length > 0
+              - cicms_docker_compose_template | length > 0
+              - cicms_docker_env_template | length > 0
+              - cicms_docker_networks is iterable
+              - cicms_docker_wait_for is iterable
+            fail_msg: >-
+              CICMS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+
         - name: Ensure CICMS Docker project directory exists
           ansible.builtin.file:
             path: "{{ cicms_docker_project_src }}"
@@ -81,7 +92,6 @@
             owner: root
             group: root
             mode: '0644'
-          when: cicms_docker_compose_template | length > 0
 
         - name: Render CICMS Docker env file
           ansible.builtin.template:
@@ -90,24 +100,43 @@
             owner: root
             group: root
             mode: '0640'
-          when: cicms_docker_env_template | length > 0
 
         - name: Ensure CICMS Docker networks exist
-          ansible.builtin.command:
-            cmd: "docker network create {{ item }}"
-          register: cicms_docker_network_create
-          changed_when: cicms_docker_network_create.rc == 0
-          failed_when: cicms_docker_network_create.rc != 0 and 'already exists' not in (cicms_docker_network_create.stderr | lower)
-          loop: "{{ cicms_docker_networks }}"
+          community.docker.docker_network:
+            name: "{{ item }}"
+            state: present
+          loop: "{{ cicms_docker_networks | default([]) }}"
 
-        - name: Start CICMS Docker stack
-          ansible.builtin.command:
-            cmd: docker compose up -d
-            chdir: "{{ cicms_docker_project_src }}"
+        - name: Deploy CICMS Docker stack
+          community.docker.docker_compose_v2:
+            project_src: "{{ cicms_docker_project_src }}"
+            state: present
+          register: cicms_docker_compose_result
 
         - name: Wait for CICMS Docker endpoints
           ansible.builtin.wait_for:
             host: "{{ item.host | default('127.0.0.1') }}"
             port: "{{ item.port }}"
             timeout: "{{ item.timeout | default(120) }}"
-          loop: "{{ cicms_docker_wait_for }}"
+          loop: "{{ cicms_docker_wait_for | default([]) }}"
+          when: (cicms_docker_wait_for | default([])) | length > 0
+
+        - name: Validate CICMS Docker health endpoint
+          ansible.builtin.uri:
+            url: "{{ cicms_docker_healthcheck_url }}"
+            method: "{{ cicms_docker_healthcheck_method }}"
+            status_code: "{{ cicms_docker_healthcheck_status | default([200]) }}"
+            validate_certs: "{{ cicms_docker_healthcheck_validate_certs }}"
+          register: cicms_docker_healthcheck_result
+          retries: "{{ cicms_docker_healthcheck_retries }}"
+          delay: "{{ cicms_docker_healthcheck_delay }}"
+          until: cicms_docker_healthcheck_result is succeeded
+          when: (cicms_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Debug CICMS deployment summary
+          ansible.builtin.debug:
+            msg:
+              service: CICMS
+              method: "{{ cicms_install_method }}"
+              compose_path: "{{ cicms_docker_project_src }}/docker-compose.yml"
+              compose_result: "{{ cicms_docker_compose_result.actions | default(cicms_docker_compose_result.changed) }}"

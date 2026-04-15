@@ -75,6 +75,17 @@
     - name: NG-SOAR docker installation flow
       when: ng_soar_install_method == 'docker'
       block:
+        - name: Validate NG-SOAR Docker prerequisites
+          ansible.builtin.assert:
+            that:
+              - ng_soar_docker_project_src | length > 0
+              - ng_soar_docker_compose_template | length > 0
+              - ng_soar_docker_env_template | length > 0
+              - ng_soar_docker_networks is iterable
+              - ng_soar_docker_wait_for is iterable
+            fail_msg: >-
+              NG-SOAR Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+
         - name: Ensure NG-SOAR Docker project directory exists
           ansible.builtin.file:
             path: "{{ ng_soar_docker_project_src }}"
@@ -90,7 +101,6 @@
             owner: root
             group: root
             mode: '0644'
-          when: ng_soar_docker_compose_template | length > 0
 
         - name: Render NG-SOAR Docker env file
           ansible.builtin.template:
@@ -99,24 +109,43 @@
             owner: root
             group: root
             mode: '0640'
-          when: ng_soar_docker_env_template | length > 0
 
         - name: Ensure NG-SOAR Docker networks exist
-          ansible.builtin.command:
-            cmd: "docker network create {{ item }}"
-          register: ng_soar_docker_network_create
-          changed_when: ng_soar_docker_network_create.rc == 0
-          failed_when: ng_soar_docker_network_create.rc != 0 and 'already exists' not in (ng_soar_docker_network_create.stderr | lower)
-          loop: "{{ ng_soar_docker_networks }}"
+          community.docker.docker_network:
+            name: "{{ item }}"
+            state: present
+          loop: "{{ ng_soar_docker_networks | default([]) }}"
 
-        - name: Start NG-SOAR Docker stack
-          ansible.builtin.command:
-            cmd: docker compose up -d
-            chdir: "{{ ng_soar_docker_project_src }}"
+        - name: Deploy NG-SOAR Docker stack
+          community.docker.docker_compose_v2:
+            project_src: "{{ ng_soar_docker_project_src }}"
+            state: present
+          register: ng_soar_docker_compose_result
 
         - name: Wait for NG-SOAR Docker endpoints
           ansible.builtin.wait_for:
             host: "{{ item.host | default('127.0.0.1') }}"
             port: "{{ item.port }}"
             timeout: "{{ item.timeout | default(120) }}"
-          loop: "{{ ng_soar_docker_wait_for }}"
+          loop: "{{ ng_soar_docker_wait_for | default([]) }}"
+          when: (ng_soar_docker_wait_for | default([])) | length > 0
+
+        - name: Validate NG-SOAR Docker health endpoint
+          ansible.builtin.uri:
+            url: "{{ ng_soar_docker_healthcheck_url }}"
+            method: "{{ ng_soar_docker_healthcheck_method }}"
+            status_code: "{{ ng_soar_docker_healthcheck_status | default([200]) }}"
+            validate_certs: "{{ ng_soar_docker_healthcheck_validate_certs }}"
+          register: ng_soar_docker_healthcheck_result
+          retries: "{{ ng_soar_docker_healthcheck_retries }}"
+          delay: "{{ ng_soar_docker_healthcheck_delay }}"
+          until: ng_soar_docker_healthcheck_result is succeeded
+          when: (ng_soar_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Debug NG-SOAR deployment summary
+          ansible.builtin.debug:
+            msg:
+              service: NG-SOAR
+              method: "{{ ng_soar_install_method }}"
+              compose_path: "{{ ng_soar_docker_project_src }}/docker-compose.yml"
+              compose_result: "{{ ng_soar_docker_compose_result.actions | default(ng_soar_docker_compose_result.changed) }}"

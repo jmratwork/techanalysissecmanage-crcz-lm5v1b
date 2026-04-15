@@ -75,6 +75,17 @@
     - name: NG-SIEM docker installation flow
       when: ng_siem_install_method == 'docker'
       block:
+        - name: Validate NG-SIEM Docker prerequisites
+          ansible.builtin.assert:
+            that:
+              - ng_siem_docker_project_src | length > 0
+              - ng_siem_docker_compose_template | length > 0
+              - ng_siem_docker_env_template | length > 0
+              - ng_siem_docker_networks is iterable
+              - ng_siem_docker_wait_for is iterable
+            fail_msg: >-
+              NG-SIEM Docker prerequisites failed. Validate project path, templates, networks and wait_for variables.
+
         - name: Ensure NG-SIEM Docker project directory exists
           ansible.builtin.file:
             path: "{{ ng_siem_docker_project_src }}"
@@ -90,7 +101,6 @@
             owner: root
             group: root
             mode: '0644'
-          when: ng_siem_docker_compose_template | length > 0
 
         - name: Render NG-SIEM Docker env file
           ansible.builtin.template:
@@ -99,24 +109,43 @@
             owner: root
             group: root
             mode: '0640'
-          when: ng_siem_docker_env_template | length > 0
 
         - name: Ensure NG-SIEM Docker networks exist
-          ansible.builtin.command:
-            cmd: "docker network create {{ item }}"
-          register: ng_siem_docker_network_create
-          changed_when: ng_siem_docker_network_create.rc == 0
-          failed_when: ng_siem_docker_network_create.rc != 0 and 'already exists' not in (ng_siem_docker_network_create.stderr | lower)
-          loop: "{{ ng_siem_docker_networks }}"
+          community.docker.docker_network:
+            name: "{{ item }}"
+            state: present
+          loop: "{{ ng_siem_docker_networks | default([]) }}"
 
-        - name: Start NG-SIEM Docker stack
-          ansible.builtin.command:
-            cmd: docker compose up -d
-            chdir: "{{ ng_siem_docker_project_src }}"
+        - name: Deploy NG-SIEM Docker stack
+          community.docker.docker_compose_v2:
+            project_src: "{{ ng_siem_docker_project_src }}"
+            state: present
+          register: ng_siem_docker_compose_result
 
         - name: Wait for NG-SIEM Docker endpoints
           ansible.builtin.wait_for:
             host: "{{ item.host | default('127.0.0.1') }}"
             port: "{{ item.port }}"
             timeout: "{{ item.timeout | default(120) }}"
-          loop: "{{ ng_siem_docker_wait_for }}"
+          loop: "{{ ng_siem_docker_wait_for | default([]) }}"
+          when: (ng_siem_docker_wait_for | default([])) | length > 0
+
+        - name: Validate NG-SIEM Docker health endpoint
+          ansible.builtin.uri:
+            url: "{{ ng_siem_docker_healthcheck_url }}"
+            method: "{{ ng_siem_docker_healthcheck_method }}"
+            status_code: "{{ ng_siem_docker_healthcheck_status | default([200]) }}"
+            validate_certs: "{{ ng_siem_docker_healthcheck_validate_certs }}"
+          register: ng_siem_docker_healthcheck_result
+          retries: "{{ ng_siem_docker_healthcheck_retries }}"
+          delay: "{{ ng_siem_docker_healthcheck_delay }}"
+          until: ng_siem_docker_healthcheck_result is succeeded
+          when: (ng_siem_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Debug NG-SIEM deployment summary
+          ansible.builtin.debug:
+            msg:
+              service: NG-SIEM
+              method: "{{ ng_siem_install_method }}"
+              compose_path: "{{ ng_siem_docker_project_src }}/docker-compose.yml"
+              compose_result: "{{ ng_siem_docker_compose_result.actions | default(ng_siem_docker_compose_result.changed) }}"

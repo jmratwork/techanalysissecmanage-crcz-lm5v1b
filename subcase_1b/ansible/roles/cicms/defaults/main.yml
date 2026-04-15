@@ -35,3 +35,11 @@ cicms_docker_wait_for:
   - host: 127.0.0.1
     port: 8080
     timeout: 120
+
+cicms_docker_healthcheck_url: ""
+cicms_docker_healthcheck_method: GET
+cicms_docker_healthcheck_status:
+  - 200
+cicms_docker_healthcheck_validate_certs: false
+cicms_docker_healthcheck_retries: 10
+cicms_docker_healthcheck_delay: 5
