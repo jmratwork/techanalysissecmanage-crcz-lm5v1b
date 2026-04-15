@@ -1,8 +1,14 @@
 # Provisioning Subcase 1b Packages
 
-This directory contains example automation for provisioning the subcase 1b sandbox. The NG-SOC
-components are distributed through a private APT repository. Each host installs the required
-package from this repository, or alternatively, container images can be used.
+This sandbox directory provides packaging notes and helper scripts, but **does not define its own
+provisioning logic**. The single operational provisioning flow uses the canonical root playbook:
+
+```bash
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
+```
+
+For compatibility, `site.yml` in this folder is only a wrapper (`import_playbook`) that delegates to
+`../../provisioning/playbook.yml`.
 
 ## Package locations
 
@@ -13,10 +19,10 @@ package from this repository, or alternatively, container images can be used.
 | CICMS | https://example.com/apt/pool/cicms/cicms-server.deb | registry.example.com/cicms:latest |
 | NG-SOAR | https://example.com/apt/pool/ng-soar/ng-soar-platform.deb | registry.example.com/ng-soar:latest |
 
-## Adding the private APT repository
+## Adding the private APT repository (manual fallback)
 
-The playbook in this folder adds the repository automatically, but manual setup can be performed
-as follows:
+Repository setup is handled by canonical provisioning roles/playbooks. If you need to prepare a host
+manually for troubleshooting:
 
 ```bash
 echo 'deb [trusted=yes] https://example.com/apt stable main' | \
@@ -25,12 +31,9 @@ sudo apt-get update
 sudo apt-get install bips ng-siem cicms ng-soar
 ```
 
-These packages provide the services required by the BIPS, NG‑SIEM, CICMS and NG‑SOAR hosts during
-sandbox provisioning.
-
 ## Trainee workstation tool versions
 
-The `build_trainee_workstation.sh` script installs pre‑downloaded packages for the trainee
+The `build_trainee_workstation.sh` script installs pre-downloaded packages for the trainee
 workstation. The following versions are bundled and verified using SHA256 hashes:
 
 | Tool | Version | Verification command |

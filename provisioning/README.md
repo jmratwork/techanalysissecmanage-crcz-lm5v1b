@@ -1,13 +1,20 @@
 # Provisioning Playbook
 
-Root-level Ansible assets for deploying the Subcase 1b cyber range scenario live under this `provisioning/` directory. The playbook references the roles needed to configure the cyber range, trainee workstation, training platform, and SOC components.
+`provisioning/playbook.yml` is the **canonical entry point** for Subcase 1b infrastructure provisioning.
+All provisioning roles and host-specific configuration must be maintained from this root playbook and
+its roles under `provisioning/roles/`.
 
-## Run the playbook
+## Single operational flow
 
-Use the bundled inventory and playbook from the repository root:
+Run provisioning from the repository root with the canonical inventory and playbook:
 
 ```bash
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
 
-The inventory groups map 1:1 with the topology hostnames using snake_case (`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`).
+A compatibility wrapper exists at `sandboxes/provisioning_subcase_1b/site.yml` and simply imports the
+canonical root playbook. Do not duplicate provisioning tasks in sandbox playbooks.
+
+The inventory groups map 1:1 with topology hostnames using snake_case (`training_platform`,
+`trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`,
+`ng_soar`, `router`).
