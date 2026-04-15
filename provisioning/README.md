@@ -166,5 +166,10 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml \
 
 ## Compatibilidad
 
-Existe un wrapper de compatibilidad en `sandboxes/provisioning_subcase_1b/site.yml` que importa el playbook canónico.
-No dupliques tareas de aprovisionamiento en playbooks de sandbox.
+Los wrappers de compatibilidad que importan el flujo canónico son:
+
+- `sandboxes/provisioning_subcase_1b/site.yml`
+- `subcase_1b/ansible/playbook.yml`
+
+Ambos delegan en `provisioning/playbook.yml` para evitar desalineaciones entre playbooks/roles heredados.
+No dupliques tareas de aprovisionamiento en playbooks de sandbox o legacy.

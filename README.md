@@ -181,3 +181,8 @@ already authenticated in the target KYPO instance.
    ```
    Confirm the listed provisioning playbook points to the agenda entry that
    references `sandboxes/provisioning_subcase_1b/site.yml`.
+
+   > Compatibility note: `sandboxes/provisioning_subcase_1b/site.yml` is a
+   > wrapper that imports the canonical entrypoint `provisioning/playbook.yml`.
+   > To avoid drift, run Ansible manually only with:
+   > `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml`.
