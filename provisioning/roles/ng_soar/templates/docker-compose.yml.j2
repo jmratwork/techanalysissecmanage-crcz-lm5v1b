@@ -30,6 +30,10 @@ services:
 {% endif %}
     environment:
       TLS_ENABLED: "{{ ng_soar_docker_tls_enabled | ternary('true', 'false') }}"
+{% if ng_soar_docker_tls_enabled | bool %}
+      TLS_CERT_FILE: "{{ ng_soar_docker_tls_cert_dest }}"
+      TLS_KEY_FILE: "{{ ng_soar_docker_tls_key_dest }}"
+{% endif %}
 {% for env_name, env_value in ng_soar_docker_environment.items() %}
       {{ env_name }}: "{{ env_value }}"
 {% endfor %}

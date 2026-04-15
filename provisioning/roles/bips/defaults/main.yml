@@ -24,7 +24,8 @@ bips_docker_ports:
 bips_docker_volumes: []
 bips_docker_networks:
   - "bips_net"
-bips_docker_tls_enabled: false
+bips_docker_tls_enabled: true
+# Safe by default; override in inventory (for labs/dev) if needed.
 bips_docker_tls_cert_src: /etc/bips/tls/tls.crt
 bips_docker_tls_key_src: /etc/bips/tls/tls.key
 bips_docker_tls_cert_dest: /run/secrets/tls.crt
