@@ -1,0 +1,18 @@
+[Unit]
+Description=Training Platform Flask service
+After=network.target
+
+[Service]
+Type=simple
+User={{ training_platform_service_user }}
+Group={{ training_platform_service_group }}
+WorkingDirectory={{ training_platform_app_dir }}
+EnvironmentFile={{ training_platform_env_file }}
+ExecStart={{ training_platform_venv_path }}/bin/python {{ training_platform_app_dir }}/app.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

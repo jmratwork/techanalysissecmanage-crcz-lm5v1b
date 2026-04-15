@@ -1,0 +1,24 @@
+---
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+
+- name: restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+
+- name: reload training platform service
+  ansible.builtin.service:
+    name: "{{ training_platform_service_name }}"
+    state: reloaded
+
+- name: restart training platform service
+  ansible.builtin.service:
+    name: "{{ training_platform_service_name }}"
+    state: restarted

@@ -1,0 +1,84 @@
+---
+- name: Install training platform runtime dependencies
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - python3
+      - python3-venv
+      - python3-pip
+    state: present
+    update_cache: yes
+
+- name: Validate training platform source path
+  ansible.builtin.stat:
+    path: "{{ training_platform_app_dir }}/app.py"
+  register: training_platform_app
+
+- name: Fail if training platform source is missing
+  ansible.builtin.fail:
+    msg: >-
+      training_platform app.py was not found in {{ training_platform_app_dir }}.
+      Set training_platform_app_dir to the deployed source directory.
+  when: not training_platform_app.stat.exists
+
+- name: Install python requirements in virtualenv
+  ansible.builtin.pip:
+    requirements: "{{ training_platform_requirements_file }}"
+    virtualenv: "{{ training_platform_venv_path }}"
+    virtualenv_command: python3 -m venv
+    state: present
+  notify: restart training platform service
+
+- name: Configure training platform environment file
+  ansible.builtin.template:
+    src: training_platform.env.j2
+    dest: "{{ training_platform_env_file }}"
+    owner: root
+    group: root
+    mode: '0640'
+  notify: restart training platform service
+
+- name: Configure training platform systemd unit
+  ansible.builtin.template:
+    src: training_platform.service.j2
+    dest: "/etc/systemd/system/{{ training_platform_service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - reload systemd daemon
+    - restart training platform service
+
+- name: Configure nginx vhost for training platform
+  ansible.builtin.template:
+    src: training_platform.nginx.conf.j2
+    dest: "/etc/nginx/sites-available/{{ training_platform_nginx_site }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload nginx
+
+- name: Enable nginx vhost for training platform
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ training_platform_nginx_site }}"
+    dest: "/etc/nginx/sites-enabled/{{ training_platform_nginx_site }}"
+    state: link
+  notify: reload nginx
+
+- name: Disable default nginx vhost
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Ensure training platform service is enabled and started
+  ansible.builtin.service:
+    name: "{{ training_platform_service_name }}"
+    state: started
+    enabled: yes
+
+- name: Ensure nginx service is enabled and started
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
