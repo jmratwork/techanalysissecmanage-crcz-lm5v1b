@@ -73,6 +73,42 @@ Resumen operativo para provisioning:
 - Escaneo/seguridad: `OPENVAS_TARGET_HOST`.
 - TLS MISP: `MISP_CA_BUNDLE`.
 
+## CYNET components in docker mode
+
+Los roles `bips`, `ng_siem`, `cicms` y `ng_soar` soportan `deb` y `docker` vía `*_install_method`.
+
+> Importante: `common_bootstrap` ya se ejecuta antes de estos roles y con `common_bootstrap_install_docker: true`, por lo que la instalación de Docker (engine, compose plugin y prerequisitos) **no debe duplicarse** dentro de cada rol.
+
+### Variables nuevas por rol (docker)
+
+Cada rol mantiene el mismo patrón de variables, cambiando el prefijo:
+
+- `bips_*`
+- `ng_siem_*`
+- `cicms_*`
+- `ng_soar_*`
+
+Variables clave por componente:
+
+- Método: `*_install_method` (`deb`/`docker`) y `*_docker_enabled`.
+- Imagen: `*_docker_image`, `*_docker_tag`, `*_docker_container_name`.
+- Puertos: `*_docker_ports`.
+- Volúmenes: `*_docker_volumes`.
+- Redes: `*_docker_networks`.
+- TLS: `*_docker_tls_enabled`, `*_docker_tls_cert_src`, `*_docker_tls_key_src`, `*_docker_tls_cert_dest`, `*_docker_tls_key_dest`.
+- Verificación TLS en healthcheck: `*_docker_healthcheck_validate_certs`.
+
+Defaults actuales por rol:
+
+| Rol | `*_install_method` por defecto | Imagen por defecto | Puertos por defecto | Redes por defecto | TLS verify healthcheck |
+| --- | --- | --- | --- | --- | --- |
+| `bips` | `{{ 'docker' if bips_docker_enabled else 'deb' }}` | `ghcr.io/example/bips:latest` | `8081:8080` | `bips_net` | `false` |
+| `ng_siem` | `{{ 'docker' if ng_siem_docker_enabled else 'deb' }}` | `ghcr.io/example/ng-siem:latest` | `5601:5601` | `ng_siem_net` | `false` |
+| `cicms` | `{{ 'docker' if cicms_docker_enabled else 'deb' }}` | `ghcr.io/example/cicms:latest` | `8080:8080` | `cicms_net` | `false` |
+| `ng_soar` | `{{ 'docker' if ng_soar_docker_enabled else 'deb' }}` | `ghcr.io/example/ng-soar:latest` | `8443:8443` | `ng_soar_net` | `false` |
+
+> Nota: para activar flujo docker en cada rol se debe alinear `*_install_method=docker` con `*_docker_enabled=true`.
+
 ## Comandos Ansible exactos (incluyendo `--limit` por grupo)
 
 ### Ejecución completa
@@ -101,6 +137,31 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit subcase_1b
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit 'bips:ng_siem:cicms:ng_soar'
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit 'training_platform,trainee_workstation'
+```
+
+### Ejemplos de ejecución en modo docker para CYNET
+
+```bash
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml \
+  --limit 'bips:ng_siem:cicms:ng_soar' \
+  -e bips_install_method=docker -e bips_docker_enabled=true \
+  -e ng_siem_install_method=docker -e ng_siem_docker_enabled=true \
+  -e cicms_install_method=docker -e cicms_docker_enabled=true \
+  -e ng_soar_install_method=docker -e ng_soar_docker_enabled=true
+```
+
+Ejemplo con overrides de imagen/puertos/red/TLS verify para un rol:
+
+```bash
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml \
+  --limit 'ng_siem' \
+  -e ng_siem_install_method=docker \
+  -e ng_siem_docker_enabled=true \
+  -e ng_siem_docker_image=ghcr.io/acme/ng-siem \
+  -e ng_siem_docker_tag=2.4.1 \
+  -e 'ng_siem_docker_ports=["15601:5601"]' \
+  -e 'ng_siem_docker_networks=["soc_backbone"]' \
+  -e ng_siem_docker_healthcheck_validate_certs=true
 ```
 
 ## Compatibilidad
