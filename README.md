@@ -1,6 +1,6 @@
 # TechAnalysisSecManage CRCZ
 
-This repository provides complete, ready‑to‑deploy instructions for CyberRangeCZ scenario using only the NG‑SOC components from the activity diagram: BIPS, NG‑SIEM, NG‑SOAR, CICMS, etc. It includes file layouts, Ansible roles, and step‑by‑step workflows so instructors and trainees can complete the training without confusion. One scenario delivers penetration testing and vulnerability assessment training through a dedicated platform and Cyber Range simulation, while the other models malware simulation and CTI integration. This repository contains materials for deploying and managing security analysis exercises on CyberRangeCZ using this platform.
+This repository provides complete, ready‑to‑deploy instructions for CyberRangeCZ scenario using only the NG‑SOC components from the activity diagram: BIPS, NG‑SIEM, NG‑SOAR, CICMS, etc. It includes file layouts, Ansible roles, and step‑by‑step workflows so instructors and trainees can complete the training without confusion. The scenario delivers penetration testing and vulnerability assessment training through a dedicated platform and Cyber Range simulation. This repository contains materials for deploying and managing security analysis exercises on CyberRangeCZ using this platform.
 
 ## Prerequisites
 
