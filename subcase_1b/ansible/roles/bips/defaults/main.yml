@@ -1,6 +1,6 @@
 ---
 bips_enabled: true
-bips_install_method: deb
+bips_install_method: "{{ 'docker' if bips_docker_enabled else 'deb' }}"
 
 bips_repo_url: "https://packages.internal.example.com"
 bips_package_path: "/bips/bips-agent.deb"
@@ -12,4 +12,10 @@ bips_config_path: /etc/bips/bips.conf
 
 bips_check_connectivity: false
 bips_min_free_kb: 102400
-bips_has_docker_artifacts: false
+
+bips_docker_enabled: false
+bips_docker_project_src: /opt/bips
+bips_docker_compose_template: ""
+bips_docker_env_template: ""
+bips_docker_networks: []
+bips_docker_wait_for: []

@@ -1,6 +1,6 @@
 ---
 ng_soar_enabled: true
-ng_soar_install_method: deb
+ng_soar_install_method: "{{ 'docker' if ng_soar_docker_enabled else 'deb' }}"
 
 ng_soar_repo_url: "https://packages.internal.example.com"
 ng_soar_package_path: "/ng-soar/ng-soar-platform.deb"
@@ -13,4 +13,10 @@ ng_soar_dashboard_path: /etc/ng_soar/ngsoar-dashboard.ndjson
 
 ng_soar_check_connectivity: false
 ng_soar_min_free_kb: 102400
-ng_soar_has_docker_artifacts: false
+
+ng_soar_docker_enabled: false
+ng_soar_docker_project_src: /opt/ng_soar
+ng_soar_docker_compose_template: ""
+ng_soar_docker_env_template: ""
+ng_soar_docker_networks: []
+ng_soar_docker_wait_for: []

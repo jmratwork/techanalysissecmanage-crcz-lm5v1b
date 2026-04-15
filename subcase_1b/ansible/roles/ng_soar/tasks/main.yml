@@ -5,65 +5,118 @@
     - name: Validate NG-SOAR installation parameters
       ansible.builtin.assert:
         that:
-          - ng_soar_install_method in ['deb']
-          - ng_soar_repo_url | length > 0
-          - ng_soar_package_path | length > 0
-          - ng_soar_package_checksum | length > 0
-          - not ng_soar_has_docker_artifacts | bool
+          - ng_soar_install_method in ['deb', 'docker']
+          - ng_soar_install_method != 'deb' or ng_soar_repo_url | length > 0
+          - ng_soar_install_method != 'deb' or ng_soar_package_path | length > 0
+          - ng_soar_install_method != 'deb' or ng_soar_package_checksum | length > 0
+          - ng_soar_install_method != 'docker' or ng_soar_docker_enabled | bool
+          - ng_soar_install_method != 'docker' or ng_soar_docker_project_src | length > 0
         fail_msg: >-
-          NG-SOAR prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
+          NG-SOAR prerequisites failed. Validate install_method and required package/Docker variables.
 
-    - name: Optionally validate NG-SOAR repository connectivity
-      ansible.builtin.uri:
-        url: "{{ ng_soar_repo_url }}"
-        method: HEAD
-        status_code: [200, 301, 302]
-      when: ng_soar_check_connectivity | bool
+    - name: NG-SOAR deb installation flow
+      when: ng_soar_install_method == 'deb'
+      block:
+        - name: Optionally validate NG-SOAR repository connectivity
+          ansible.builtin.uri:
+            url: "{{ ng_soar_repo_url }}"
+            method: HEAD
+            status_code: [200, 301, 302]
+          when: ng_soar_check_connectivity | bool
 
-    - name: Check free space for NG-SOAR package download
-      ansible.builtin.command:
-        cmd: "df --output=avail -k /tmp"
-      changed_when: false
-      register: ng_soar_tmp_df
+        - name: Check free space for NG-SOAR package download
+          ansible.builtin.command:
+            cmd: "df --output=avail -k /tmp"
+          changed_when: false
+          register: ng_soar_tmp_df
 
-    - name: Validate free space threshold for NG-SOAR
-      ansible.builtin.assert:
-        that:
-          - (ng_soar_tmp_df.stdout_lines[-1] | int) >= (ng_soar_min_free_kb | int)
-        fail_msg: "Not enough free disk space in /tmp for NG-SOAR package download"
+        - name: Validate free space threshold for NG-SOAR
+          ansible.builtin.assert:
+            that:
+              - (ng_soar_tmp_df.stdout_lines[-1] | int) >= (ng_soar_min_free_kb | int)
+            fail_msg: "Not enough free disk space in /tmp for NG-SOAR package download"
 
-    - name: Download NG-SOAR package
-      ansible.builtin.get_url:
-        url: "{{ ng_soar_repo_url ~ ng_soar_package_path }}"
-        dest: "{{ ng_soar_package_tmp_path }}"
-        mode: "0644"
-        checksum: "{{ ng_soar_package_checksum }}"
+        - name: Download NG-SOAR package
+          ansible.builtin.get_url:
+            url: "{{ ng_soar_repo_url ~ ng_soar_package_path }}"
+            dest: "{{ ng_soar_package_tmp_path }}"
+            mode: "0644"
+            checksum: "{{ ng_soar_package_checksum }}"
 
-    - name: Install NG-SOAR
-      ansible.builtin.apt:
-        deb: "{{ ng_soar_package_tmp_path }}"
-        state: present
+        - name: Install NG-SOAR
+          ansible.builtin.apt:
+            deb: "{{ ng_soar_package_tmp_path }}"
+            state: present
 
-    - name: Configure NG-SOAR
-      ansible.builtin.template:
-        src: ng_soar.conf.j2
-        dest: "{{ ng_soar_config_path }}"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: restart ng_soar service
+        - name: Configure NG-SOAR
+          ansible.builtin.template:
+            src: ng_soar.conf.j2
+            dest: "{{ ng_soar_config_path }}"
+            owner: root
+            group: root
+            mode: '0644'
+          notify: restart ng_soar service
 
-    - name: Deploy NG-SOAR dashboard
-      ansible.builtin.template:
-        src: ngsoar-dashboard.ndjson.j2
-        dest: "{{ ng_soar_dashboard_path }}"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: restart ng_soar service
+        - name: Deploy NG-SOAR dashboard
+          ansible.builtin.template:
+            src: ngsoar-dashboard.ndjson.j2
+            dest: "{{ ng_soar_dashboard_path }}"
+            owner: root
+            group: root
+            mode: '0644'
+          notify: restart ng_soar service
 
-    - name: Enable and start NG-SOAR service
-      ansible.builtin.service:
-        name: "{{ ng_soar_service_name }}"
-        state: started
-        enabled: yes
+        - name: Enable and start NG-SOAR service
+          ansible.builtin.service:
+            name: "{{ ng_soar_service_name }}"
+            state: started
+            enabled: yes
+
+    - name: NG-SOAR docker installation flow
+      when: ng_soar_install_method == 'docker'
+      block:
+        - name: Ensure NG-SOAR Docker project directory exists
+          ansible.builtin.file:
+            path: "{{ ng_soar_docker_project_src }}"
+            state: directory
+            owner: root
+            group: root
+            mode: '0755'
+
+        - name: Render NG-SOAR Docker compose file
+          ansible.builtin.template:
+            src: "{{ ng_soar_docker_compose_template }}"
+            dest: "{{ ng_soar_docker_project_src }}/docker-compose.yml"
+            owner: root
+            group: root
+            mode: '0644'
+          when: ng_soar_docker_compose_template | length > 0
+
+        - name: Render NG-SOAR Docker env file
+          ansible.builtin.template:
+            src: "{{ ng_soar_docker_env_template }}"
+            dest: "{{ ng_soar_docker_project_src }}/.env"
+            owner: root
+            group: root
+            mode: '0640'
+          when: ng_soar_docker_env_template | length > 0
+
+        - name: Ensure NG-SOAR Docker networks exist
+          ansible.builtin.command:
+            cmd: "docker network create {{ item }}"
+          register: ng_soar_docker_network_create
+          changed_when: ng_soar_docker_network_create.rc == 0
+          failed_when: ng_soar_docker_network_create.rc != 0 and 'already exists' not in (ng_soar_docker_network_create.stderr | lower)
+          loop: "{{ ng_soar_docker_networks }}"
+
+        - name: Start NG-SOAR Docker stack
+          ansible.builtin.command:
+            cmd: docker compose up -d
+            chdir: "{{ ng_soar_docker_project_src }}"
+
+        - name: Wait for NG-SOAR Docker endpoints
+          ansible.builtin.wait_for:
+            host: "{{ item.host | default('127.0.0.1') }}"
+            port: "{{ item.port }}"
+            timeout: "{{ item.timeout | default(120) }}"
+          loop: "{{ ng_soar_docker_wait_for }}"
