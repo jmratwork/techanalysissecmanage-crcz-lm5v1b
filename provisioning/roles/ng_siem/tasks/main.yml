@@ -5,65 +5,118 @@
     - name: Validate NG-SIEM installation parameters
       ansible.builtin.assert:
         that:
-          - ng_siem_install_method in ['deb']
-          - ng_siem_repo_url | length > 0
-          - ng_siem_package_path | length > 0
-          - ng_siem_package_checksum | length > 0
-          - not ng_siem_has_docker_artifacts | bool
+          - ng_siem_install_method in ['deb', 'docker']
+          - ng_siem_install_method != 'deb' or ng_siem_repo_url | length > 0
+          - ng_siem_install_method != 'deb' or ng_siem_package_path | length > 0
+          - ng_siem_install_method != 'deb' or ng_siem_package_checksum | length > 0
+          - ng_siem_install_method != 'docker' or ng_siem_docker_enabled | bool
+          - ng_siem_install_method != 'docker' or ng_siem_docker_project_src | length > 0
         fail_msg: >-
-          NG-SIEM prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
+          NG-SIEM prerequisites failed. Validate install_method and required package/Docker variables.
 
-    - name: Optionally validate NG-SIEM repository connectivity
-      ansible.builtin.uri:
-        url: "{{ ng_siem_repo_url }}"
-        method: HEAD
-        status_code: [200, 301, 302]
-      when: ng_siem_check_connectivity | bool
+    - name: NG-SIEM deb installation flow
+      when: ng_siem_install_method == 'deb'
+      block:
+        - name: Optionally validate NG-SIEM repository connectivity
+          ansible.builtin.uri:
+            url: "{{ ng_siem_repo_url }}"
+            method: HEAD
+            status_code: [200, 301, 302]
+          when: ng_siem_check_connectivity | bool
 
-    - name: Check free space for NG-SIEM package download
-      ansible.builtin.command:
-        cmd: "df --output=avail -k /tmp"
-      changed_when: false
-      register: ng_siem_tmp_df
+        - name: Check free space for NG-SIEM package download
+          ansible.builtin.command:
+            cmd: "df --output=avail -k /tmp"
+          changed_when: false
+          register: ng_siem_tmp_df
 
-    - name: Validate free space threshold for NG-SIEM
-      ansible.builtin.assert:
-        that:
-          - (ng_siem_tmp_df.stdout_lines[-1] | int) >= (ng_siem_min_free_kb | int)
-        fail_msg: "Not enough free disk space in /tmp for NG-SIEM package download"
+        - name: Validate free space threshold for NG-SIEM
+          ansible.builtin.assert:
+            that:
+              - (ng_siem_tmp_df.stdout_lines[-1] | int) >= (ng_siem_min_free_kb | int)
+            fail_msg: "Not enough free disk space in /tmp for NG-SIEM package download"
 
-    - name: Download NG-SIEM package
-      ansible.builtin.get_url:
-        url: "{{ ng_siem_repo_url ~ ng_siem_package_path }}"
-        dest: "{{ ng_siem_package_tmp_path }}"
-        mode: "0644"
-        checksum: "{{ ng_siem_package_checksum }}"
+        - name: Download NG-SIEM package
+          ansible.builtin.get_url:
+            url: "{{ ng_siem_repo_url ~ ng_siem_package_path }}"
+            dest: "{{ ng_siem_package_tmp_path }}"
+            mode: "0644"
+            checksum: "{{ ng_siem_package_checksum }}"
 
-    - name: Install NG-SIEM
-      ansible.builtin.apt:
-        deb: "{{ ng_siem_package_tmp_path }}"
-        state: present
+        - name: Install NG-SIEM
+          ansible.builtin.apt:
+            deb: "{{ ng_siem_package_tmp_path }}"
+            state: present
 
-    - name: Configure NG-SIEM
-      ansible.builtin.template:
-        src: ng_siem.conf.j2
-        dest: "{{ ng_siem_config_path }}"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: restart ng_siem service
+        - name: Configure NG-SIEM
+          ansible.builtin.template:
+            src: ng_siem.conf.j2
+            dest: "{{ ng_siem_config_path }}"
+            owner: root
+            group: root
+            mode: '0644'
+          notify: restart ng_siem service
 
-    - name: Configure Filebeat
-      ansible.builtin.template:
-        src: filebeat.yml.j2
-        dest: "{{ ng_siem_filebeat_config_path }}"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: restart ng_siem service
+        - name: Configure Filebeat
+          ansible.builtin.template:
+            src: filebeat.yml.j2
+            dest: "{{ ng_siem_filebeat_config_path }}"
+            owner: root
+            group: root
+            mode: '0644'
+          notify: restart ng_siem service
 
-    - name: Enable and start NG-SIEM service
-      ansible.builtin.service:
-        name: "{{ ng_siem_service_name }}"
-        state: started
-        enabled: yes
+        - name: Enable and start NG-SIEM service
+          ansible.builtin.service:
+            name: "{{ ng_siem_service_name }}"
+            state: started
+            enabled: yes
+
+    - name: NG-SIEM docker installation flow
+      when: ng_siem_install_method == 'docker'
+      block:
+        - name: Ensure NG-SIEM Docker project directory exists
+          ansible.builtin.file:
+            path: "{{ ng_siem_docker_project_src }}"
+            state: directory
+            owner: root
+            group: root
+            mode: '0755'
+
+        - name: Render NG-SIEM Docker compose file
+          ansible.builtin.template:
+            src: "{{ ng_siem_docker_compose_template }}"
+            dest: "{{ ng_siem_docker_project_src }}/docker-compose.yml"
+            owner: root
+            group: root
+            mode: '0644'
+          when: ng_siem_docker_compose_template | length > 0
+
+        - name: Render NG-SIEM Docker env file
+          ansible.builtin.template:
+            src: "{{ ng_siem_docker_env_template }}"
+            dest: "{{ ng_siem_docker_project_src }}/.env"
+            owner: root
+            group: root
+            mode: '0640'
+          when: ng_siem_docker_env_template | length > 0
+
+        - name: Ensure NG-SIEM Docker networks exist
+          ansible.builtin.command:
+            cmd: "docker network create {{ item }}"
+          register: ng_siem_docker_network_create
+          changed_when: ng_siem_docker_network_create.rc == 0
+          failed_when: ng_siem_docker_network_create.rc != 0 and 'already exists' not in (ng_siem_docker_network_create.stderr | lower)
+          loop: "{{ ng_siem_docker_networks }}"
+
+        - name: Start NG-SIEM Docker stack
+          ansible.builtin.command:
+            cmd: docker compose up -d
+            chdir: "{{ ng_siem_docker_project_src }}"
+
+        - name: Wait for NG-SIEM Docker endpoints
+          ansible.builtin.wait_for:
+            host: "{{ item.host | default('127.0.0.1') }}"
+            port: "{{ item.port }}"
+            timeout: "{{ item.timeout | default(120) }}"
+          loop: "{{ ng_siem_docker_wait_for }}"

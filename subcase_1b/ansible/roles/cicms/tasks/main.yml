@@ -5,56 +5,109 @@
     - name: Validate CICMS installation parameters
       ansible.builtin.assert:
         that:
-          - cicms_install_method in ['deb']
-          - cicms_repo_url | length > 0
-          - cicms_package_path | length > 0
-          - cicms_package_checksum | length > 0
-          - not cicms_has_docker_artifacts | bool
+          - cicms_install_method in ['deb', 'docker']
+          - cicms_install_method != 'deb' or cicms_repo_url | length > 0
+          - cicms_install_method != 'deb' or cicms_package_path | length > 0
+          - cicms_install_method != 'deb' or cicms_package_checksum | length > 0
+          - cicms_install_method != 'docker' or cicms_docker_enabled | bool
+          - cicms_install_method != 'docker' or cicms_docker_project_src | length > 0
         fail_msg: >-
-          CICMS prerequisites failed. Validate URL/checksum and use Docker artifacts when available.
+          CICMS prerequisites failed. Validate install_method and required package/Docker variables.
 
-    - name: Optionally validate CICMS repository connectivity
-      ansible.builtin.uri:
-        url: "{{ cicms_repo_url }}"
-        method: HEAD
-        status_code: [200, 301, 302]
-      when: cicms_check_connectivity | bool
+    - name: CICMS deb installation flow
+      when: cicms_install_method == 'deb'
+      block:
+        - name: Optionally validate CICMS repository connectivity
+          ansible.builtin.uri:
+            url: "{{ cicms_repo_url }}"
+            method: HEAD
+            status_code: [200, 301, 302]
+          when: cicms_check_connectivity | bool
 
-    - name: Check free space for CICMS package download
-      ansible.builtin.command:
-        cmd: "df --output=avail -k /tmp"
-      changed_when: false
-      register: cicms_tmp_df
+        - name: Check free space for CICMS package download
+          ansible.builtin.command:
+            cmd: "df --output=avail -k /tmp"
+          changed_when: false
+          register: cicms_tmp_df
 
-    - name: Validate free space threshold for CICMS
-      ansible.builtin.assert:
-        that:
-          - (cicms_tmp_df.stdout_lines[-1] | int) >= (cicms_min_free_kb | int)
-        fail_msg: "Not enough free disk space in /tmp for CICMS package download"
+        - name: Validate free space threshold for CICMS
+          ansible.builtin.assert:
+            that:
+              - (cicms_tmp_df.stdout_lines[-1] | int) >= (cicms_min_free_kb | int)
+            fail_msg: "Not enough free disk space in /tmp for CICMS package download"
 
-    - name: Download CICMS package
-      ansible.builtin.get_url:
-        url: "{{ cicms_repo_url ~ cicms_package_path }}"
-        dest: "{{ cicms_package_tmp_path }}"
-        mode: "0644"
-        checksum: "{{ cicms_package_checksum }}"
+        - name: Download CICMS package
+          ansible.builtin.get_url:
+            url: "{{ cicms_repo_url ~ cicms_package_path }}"
+            dest: "{{ cicms_package_tmp_path }}"
+            mode: "0644"
+            checksum: "{{ cicms_package_checksum }}"
 
-    - name: Install CICMS
-      ansible.builtin.apt:
-        deb: "{{ cicms_package_tmp_path }}"
-        state: present
+        - name: Install CICMS
+          ansible.builtin.apt:
+            deb: "{{ cicms_package_tmp_path }}"
+            state: present
 
-    - name: Configure CICMS
-      ansible.builtin.template:
-        src: cicms.conf.j2
-        dest: "{{ cicms_config_path }}"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: restart cicms service
+        - name: Configure CICMS
+          ansible.builtin.template:
+            src: cicms.conf.j2
+            dest: "{{ cicms_config_path }}"
+            owner: root
+            group: root
+            mode: '0644'
+          notify: restart cicms service
 
-    - name: Enable and start CICMS service
-      ansible.builtin.service:
-        name: "{{ cicms_service_name }}"
-        state: started
-        enabled: yes
+        - name: Enable and start CICMS service
+          ansible.builtin.service:
+            name: "{{ cicms_service_name }}"
+            state: started
+            enabled: yes
+
+    - name: CICMS docker installation flow
+      when: cicms_install_method == 'docker'
+      block:
+        - name: Ensure CICMS Docker project directory exists
+          ansible.builtin.file:
+            path: "{{ cicms_docker_project_src }}"
+            state: directory
+            owner: root
+            group: root
+            mode: '0755'
+
+        - name: Render CICMS Docker compose file
+          ansible.builtin.template:
+            src: "{{ cicms_docker_compose_template }}"
+            dest: "{{ cicms_docker_project_src }}/docker-compose.yml"
+            owner: root
+            group: root
+            mode: '0644'
+          when: cicms_docker_compose_template | length > 0
+
+        - name: Render CICMS Docker env file
+          ansible.builtin.template:
+            src: "{{ cicms_docker_env_template }}"
+            dest: "{{ cicms_docker_project_src }}/.env"
+            owner: root
+            group: root
+            mode: '0640'
+          when: cicms_docker_env_template | length > 0
+
+        - name: Ensure CICMS Docker networks exist
+          ansible.builtin.command:
+            cmd: "docker network create {{ item }}"
+          register: cicms_docker_network_create
+          changed_when: cicms_docker_network_create.rc == 0
+          failed_when: cicms_docker_network_create.rc != 0 and 'already exists' not in (cicms_docker_network_create.stderr | lower)
+          loop: "{{ cicms_docker_networks }}"
+
+        - name: Start CICMS Docker stack
+          ansible.builtin.command:
+            cmd: docker compose up -d
+            chdir: "{{ cicms_docker_project_src }}"
+
+        - name: Wait for CICMS Docker endpoints
+          ansible.builtin.wait_for:
+            host: "{{ item.host | default('127.0.0.1') }}"
+            port: "{{ item.port }}"
+            timeout: "{{ item.timeout | default(120) }}"
+          loop: "{{ cicms_docker_wait_for }}"

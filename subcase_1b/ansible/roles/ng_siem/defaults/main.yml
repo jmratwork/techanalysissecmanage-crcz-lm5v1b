@@ -1,6 +1,6 @@
 ---
 ng_siem_enabled: true
-ng_siem_install_method: deb
+ng_siem_install_method: "{{ 'docker' if ng_siem_docker_enabled else 'deb' }}"
 
 ng_siem_repo_url: "https://packages.internal.example.com"
 ng_siem_package_path: "/ng-siem/ng-siem-server.deb"
@@ -13,4 +13,10 @@ ng_siem_filebeat_config_path: /etc/ng_siem/filebeat.yml
 
 ng_siem_check_connectivity: false
 ng_siem_min_free_kb: 102400
-ng_siem_has_docker_artifacts: false
+
+ng_siem_docker_enabled: false
+ng_siem_docker_project_src: /opt/ng_siem
+ng_siem_docker_compose_template: ""
+ng_siem_docker_env_template: ""
+ng_siem_docker_networks: []
+ng_siem_docker_wait_for: []
