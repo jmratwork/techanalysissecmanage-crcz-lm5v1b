@@ -10,6 +10,12 @@
   roles:
     - training_platform
 
+
+- hosts: trainee_workstation
+  become: true
+  roles:
+    - trainee_workstation
+
 - hosts: cyber_range
   become: true
   roles:
