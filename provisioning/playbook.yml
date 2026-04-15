@@ -4,6 +4,12 @@
   roles:
     - logging
 
+
+- hosts: training_platform
+  become: true
+  roles:
+    - training_platform
+
 - hosts: cyber_range
   become: true
   roles:

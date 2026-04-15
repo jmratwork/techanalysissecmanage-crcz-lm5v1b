@@ -1,0 +1,22 @@
+---
+training_platform_app_dir: /opt/subcase_1b/training_platform
+training_platform_venv_path: "{{ training_platform_app_dir }}/.venv"
+training_platform_requirements_file: "{{ training_platform_app_dir }}/requirements.txt"
+training_platform_service_name: training_platform
+training_platform_env_file: /etc/default/training_platform
+training_platform_service_user: root
+training_platform_service_group: root
+training_platform_bind_host: 127.0.0.1
+training_platform_bind_port: 5000
+training_platform_nginx_site: training_platform.conf
+
+# Integration variables written to EnvironmentFile.
+training_platform_lti_tool_private_key: ""
+training_platform_openedx_url: ""
+training_platform_openedx_api_token: ""
+training_platform_openedx_session_cookie: ""
+training_platform_misp_url: ""
+training_platform_misp_api_key: ""
+training_platform_kypo_url: ""
+training_platform_lti_client_id: ""
+training_platform_lti_deployment_id: ""
