@@ -35,6 +35,8 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 
 No mantengas ni introduzcas lógica de aprovisionamiento paralela en `sandboxes/` o en `subcase_1b/ansible/roles/**`.
 
+Los archivos de `subcase_1b/ansible/roles/**` se conservan como snapshot legado para trazabilidad y no deben considerarse fuente de verdad ni runtime del flujo principal.
+
 ## CI checks (equivalentes locales)
 
 Estos son los mismos comandos ejecutados por `.github/workflows/ci.yml`:
@@ -189,7 +191,7 @@ providing clearer handoff notes for instructors.
 
 > ⚠️ **Sube únicamente `sandboxes/sandbox_agenda_ui.yaml` en el campo _Sandbox Agenda_.** Debe ser una secuencia plana (lista de `- action: ...`). No uses `sandbox_agenda_definition.yaml` en la UI de KYPO.
 
-> ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`topology.yml`](topology.yml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
+> ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`sandboxes/topology_subcase_1b.yaml`](sandboxes/topology_subcase_1b.yaml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
 >
 > - **Topology name**: `subcase-1b-topology`
 > - **Topology YAML**: `sandboxes/topology_subcase_1b.yaml`
