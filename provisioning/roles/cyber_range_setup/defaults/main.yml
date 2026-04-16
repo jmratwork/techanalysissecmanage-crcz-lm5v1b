@@ -1,0 +1,39 @@
+---
+cyber_range_setup_work_dir: /opt/cyber_range
+cyber_range_setup_log_dir: /var/log/cyber_range
+cyber_range_setup_owner: root
+cyber_range_setup_group: root
+
+# If true, the role fails when scenario artifacts are missing on controller.
+# If false, it emits an explicit limitation message and continues with baseline setup.
+cyber_range_setup_require_full_target: false
+
+# Source artifacts expected by scripts/scenario in this repository.
+cyber_range_setup_required_artifacts:
+  - "{{ playbook_dir }}/../subcase_1b/scenario.yml"
+  - "{{ playbook_dir }}/../subcase_1b/scripts/cyber_range_start.sh"
+  - "{{ playbook_dir }}/../subcase_1b/scripts/lab_runner.sh"
+  - "{{ playbook_dir }}/../subcase_1b/scripts/collect_artifacts.sh"
+
+cyber_range_setup_packages_by_os_family:
+  Debian:
+    # Runtime/base tools used by scripts and operations
+    - bash
+    - coreutils
+    - curl
+    - jq
+    - python3
+    - python3-pip
+    # Network diagnostics/utilities for lab operations
+    - iproute2
+    - net-tools
+    - dnsutils
+    - iputils-ping
+    - traceroute
+    - tcpdump
+    - nmap
+    # Minimal hardening and host controls
+    - ca-certificates
+    - unattended-upgrades
+    - fail2ban
+    - ufw
