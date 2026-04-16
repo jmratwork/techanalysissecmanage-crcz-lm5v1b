@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+# Legacy/compatibility helper for lab flows.
+# Canonical provisioning/operation path is Ansible role `training_platform`
+# via `provisioning/playbook.yml`.
+
 SERVICE_DIR="$(dirname "$0")/../training_platform"
 PYTHON_BIN="python3"
 if [ -x "$SERVICE_DIR/.venv/bin/python" ]; then

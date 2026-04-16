@@ -8,6 +8,8 @@
 - `cicms_check_connectivity`, `cicms_min_free_kb`: validaciones previas opcionales.
 - `cicms_docker_enabled`, `cicms_docker_image`, `cicms_docker_tag`: control y artefacto de despliegue en Docker.
 
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
+
 ## Defaults reales (fuente: `defaults/main.yml`)
 
 | Variable | Default actual | Notas |

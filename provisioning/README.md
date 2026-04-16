@@ -50,6 +50,15 @@ Notas de coherencia:
 - `inventory.ini` usa `ansible_host=<hostname>` (resolución por nombre), por lo que los valores IP de la topología no se duplican en el inventario canónico.
 - `soc_server` no existe en la topología ni en el inventario canónico de Subcaso 1b.
 
+#### Contrato de coherencia verificable (fuente de verdad)
+
+Para considerar el estado **coherente** entre topología, inventario y playbook canónico, deben cumplirse simultáneamente estas reglas:
+
+1. Cada host declarado en `sandboxes/topology_subcase_1b.yaml` (`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`) existe como host/grupo canónico en `provisioning/inventory.ini`.
+2. Cada grupo canónico de `provisioning/inventory.ini` tiene exactamente un bloque `hosts:` correspondiente en `provisioning/playbook.yml` (con `router` apuntando a `router_noop`).
+3. El grupo agregado `subcase_1b:children` contiene solo grupos canónicos de Subcaso 1b (sin aliases legacy ni grupos ficticios como `soc_server`).
+4. Cualquier cambio de naming o de asignación de roles debe actualizar **en la misma entrega** esta tabla de coherencia y la documentación principal.
+
 ### Grupos reales del inventario
 
 Los grupos definidos actualmente en `provisioning/inventory.ini` son:
@@ -120,6 +129,15 @@ Resumen operativo para provisioning:
 - KYPO: `KYPO_URL`, `KYPO_LTI_LAUNCH_URL`, `KYPO_SUBNET`, `KYPO_TARGET_HOST`.
 - Escaneo/seguridad: `OPENVAS_TARGET_HOST`.
 - TLS MISP: `MISP_CA_BUNDLE`.
+
+### Training platform: estrategia de código (ruta real vs sincronización)
+
+El rol `training_platform` soporta dos modos explícitos para disponibilidad de código:
+
+- `training_platform_source_mode: assert_present` (default): exige que el código ya exista en `training_platform_app_dir` en el host remoto.
+- `training_platform_source_mode: sync_from_repo`: sincroniza `subcase_1b/training_platform` desde el controller (`training_platform_source_dir`) hacia `training_platform_app_dir` antes de crear venv/systemd/nginx.
+
+Si tu entorno no monta previamente el repositorio en la VM, usa `sync_from_repo` para evitar un estado “aparentemente listo” pero no ejecutable.
 
 ## CYNET components in docker mode
 

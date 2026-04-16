@@ -8,6 +8,55 @@
     state: present
     update_cache: yes
 
+- name: Assert training platform source strategy is supported
+  ansible.builtin.assert:
+    that:
+      - training_platform_source_mode in ['assert_present', 'sync_from_repo']
+    fail_msg: >-
+      training_platform_source_mode inválido: {{ training_platform_source_mode }}.
+      Valores soportados: assert_present, sync_from_repo.
+
+- name: Check training platform source directory on controller
+  ansible.builtin.stat:
+    path: "{{ training_platform_source_dir }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: training_platform_source_dir_stat
+  when: training_platform_source_mode == 'sync_from_repo'
+
+- name: Assert training platform source directory exists on controller
+  ansible.builtin.assert:
+    that:
+      - training_platform_source_dir_stat.stat.exists
+      - training_platform_source_dir_stat.stat.isdir
+    fail_msg: >-
+      training_platform_source_dir no existe o no es un directorio en controller:
+      {{ training_platform_source_dir }}.
+      Corrige la ruta o usa training_platform_source_mode=assert_present.
+  when: training_platform_source_mode == 'sync_from_repo'
+
+- name: Ensure training platform application directory exists on host
+  ansible.builtin.file:
+    path: "{{ training_platform_app_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: training_platform_source_mode == 'sync_from_repo'
+
+- name: Sync training platform source from repository to host
+  ansible.builtin.copy:
+    src: "{{ training_platform_source_dir }}/"
+    dest: "{{ training_platform_app_dir }}/"
+    owner: root
+    group: root
+    mode: preserve
+    directory_mode: '0755'
+    force: true
+  notify: restart training platform service
+  when: training_platform_source_mode == 'sync_from_repo'
+
 - name: Check training platform requirements file
   ansible.builtin.stat:
     path: "{{ training_platform_requirements_file }}"
@@ -20,7 +69,8 @@
       - training_platform_requirements.stat.isreg
     fail_msg: >-
       requirements.txt no existe en {{ training_platform_requirements_file }}.
-      Este rol no copia código: define training_platform_app_dir con la ruta real del repo.
+      Si el código no existe en el host remoto, usa
+      training_platform_source_mode=sync_from_repo o ajusta training_platform_app_dir.
 
 - name: Check training platform application entrypoint
   ansible.builtin.stat:
@@ -34,7 +84,8 @@
       - training_platform_app.stat.isreg
     fail_msg: >-
       app.py no existe en {{ training_platform_entrypoint }}.
-      Este rol no copia código: define training_platform_app_dir con la ruta real del repo.
+      Si el código no existe en el host remoto, usa
+      training_platform_source_mode=sync_from_repo o ajusta training_platform_app_dir.
 
 - name: Assert Open edX integration variables
   ansible.builtin.assert:
