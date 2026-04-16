@@ -16,6 +16,15 @@
           ng_soar_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
           Si no usarás deb, cambia ng_soar_install_method a "docker".
 
+    - name: Assert supported OS family for NG-SOAR deb flow
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == 'Debian'
+        fail_msg: >-
+          NG-SOAR con install_method=deb requiere hosts Debian-family (apt/deb).
+          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+      when: ng_soar_install_method == 'deb'
+
     - name: NG-SOAR deb installation flow
       when: ng_soar_install_method == 'deb'
       block:
@@ -138,6 +147,14 @@
           loop: "{{ ng_soar_docker_wait_for | default([]) }}"
           when: (ng_soar_docker_wait_for | default([])) | length > 0
 
+        - name: Assert NG-SOAR Docker healthcheck strategy is configured
+          ansible.builtin.assert:
+            that:
+              - (ng_soar_docker_wait_for | default([]) | length > 0) or ((ng_soar_docker_healthcheck_url | default('')) | length > 0)
+            fail_msg: >-
+              NG-SOAR Docker deployment requires at least one runtime validation:
+              define ng_soar_docker_wait_for or ng_soar_docker_healthcheck_url.
+
         - name: Validate NG-SOAR Docker health endpoint
           ansible.builtin.uri:
             url: "{{ ng_soar_docker_healthcheck_url }}"
@@ -148,7 +165,17 @@
           retries: "{{ ng_soar_docker_healthcheck_retries }}"
           delay: "{{ ng_soar_docker_healthcheck_delay }}"
           until: ng_soar_docker_healthcheck_result is succeeded
-          when: (ng_soar_docker_healthcheck_url | default('')) | length > 0
+          when:
+            - ng_soar_docker_healthcheck_enabled | bool
+            - (ng_soar_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Explain NG-SOAR healthcheck mode when URL probe is disabled
+          ansible.builtin.debug:
+            msg: >-
+              NG-SOAR Docker HTTP healthcheck skipped (ng_soar_docker_healthcheck_enabled={{ ng_soar_docker_healthcheck_enabled }},
+              url='{{ ng_soar_docker_healthcheck_url }}'). Runtime validation relies on wait_for endpoints.
+          when:
+            - not (ng_soar_docker_healthcheck_enabled | bool) or (ng_soar_docker_healthcheck_url | default('')) | length == 0
 
         - name: Debug NG-SOAR deployment summary
           ansible.builtin.debug:

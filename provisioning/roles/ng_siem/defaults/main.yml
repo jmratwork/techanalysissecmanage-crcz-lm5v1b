@@ -40,6 +40,7 @@ ng_siem_docker_wait_for:
     timeout: 120
 
 ng_siem_docker_healthcheck_url: ""
+ng_siem_docker_healthcheck_enabled: true
 ng_siem_docker_healthcheck_method: GET
 ng_siem_docker_healthcheck_status:
   - 200

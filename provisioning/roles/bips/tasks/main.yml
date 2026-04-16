@@ -16,6 +16,15 @@
           bips_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
           Si no usarás deb, cambia bips_install_method a "docker".
 
+    - name: Assert supported OS family for BIPS deb flow
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == 'Debian'
+        fail_msg: >-
+          BIPS con install_method=deb requiere hosts Debian-family (apt/deb).
+          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+      when: bips_install_method == 'deb'
+
     - name: BIPS deb installation flow
       when: bips_install_method == 'deb'
       block:
@@ -129,6 +138,14 @@
           loop: "{{ bips_docker_wait_for | default([]) }}"
           when: (bips_docker_wait_for | default([])) | length > 0
 
+        - name: Assert BIPS Docker healthcheck strategy is configured
+          ansible.builtin.assert:
+            that:
+              - (bips_docker_wait_for | default([]) | length > 0) or ((bips_docker_healthcheck_url | default('')) | length > 0)
+            fail_msg: >-
+              BIPS Docker deployment requires at least one runtime validation:
+              define bips_docker_wait_for or bips_docker_healthcheck_url.
+
         - name: Validate BIPS Docker health endpoint
           ansible.builtin.uri:
             url: "{{ bips_docker_healthcheck_url }}"
@@ -139,7 +156,17 @@
           retries: "{{ bips_docker_healthcheck_retries }}"
           delay: "{{ bips_docker_healthcheck_delay }}"
           until: bips_docker_healthcheck_result is succeeded
-          when: (bips_docker_healthcheck_url | default('')) | length > 0
+          when:
+            - bips_docker_healthcheck_enabled | bool
+            - (bips_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Explain BIPS healthcheck mode when URL probe is disabled
+          ansible.builtin.debug:
+            msg: >-
+              BIPS Docker HTTP healthcheck skipped (bips_docker_healthcheck_enabled={{ bips_docker_healthcheck_enabled }},
+              url='{{ bips_docker_healthcheck_url }}'). Runtime validation relies on wait_for endpoints.
+          when:
+            - not (bips_docker_healthcheck_enabled | bool) or (bips_docker_healthcheck_url | default('')) | length == 0
 
         - name: Debug BIPS deployment summary
           ansible.builtin.debug:

@@ -7,6 +7,9 @@
 - `ng_soar_service_name`, `ng_soar_config_path`, `ng_soar_dashboard_path`: servicio y rutas de configuración.
 - `ng_soar_check_connectivity`, `ng_soar_min_free_kb`: validaciones previas opcionales.
 - `ng_soar_docker_enabled`, `ng_soar_docker_image`, `ng_soar_docker_tag`: control y artefacto de despliegue en Docker.
+- `ng_soar_docker_wait_for`, `ng_soar_docker_healthcheck_enabled`, `ng_soar_docker_healthcheck_url`: validación runtime post-deploy (puerto y/o endpoint HTTP).
+
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
 
 ## Defaults reales (fuente: `defaults/main.yml`)
 

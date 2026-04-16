@@ -7,6 +7,9 @@
 - `ng_siem_service_name`, `ng_siem_config_path`, `ng_siem_filebeat_config_path`: servicio y rutas de configuración.
 - `ng_siem_check_connectivity`, `ng_siem_min_free_kb`: validaciones previas opcionales.
 - `ng_siem_docker_enabled`, `ng_siem_docker_image`, `ng_siem_docker_tag`: control y artefacto de despliegue en Docker.
+- `ng_siem_docker_wait_for`, `ng_siem_docker_healthcheck_enabled`, `ng_siem_docker_healthcheck_url`: validación runtime post-deploy (puerto y/o endpoint HTTP).
+
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
 
 ## Defaults reales (fuente: `defaults/main.yml`)
 

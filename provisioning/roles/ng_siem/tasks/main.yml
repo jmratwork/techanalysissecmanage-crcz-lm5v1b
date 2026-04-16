@@ -16,6 +16,15 @@
           ng_siem_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
           Si no usarás deb, cambia ng_siem_install_method a "docker".
 
+    - name: Assert supported OS family for NG-SIEM deb flow
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == 'Debian'
+        fail_msg: >-
+          NG-SIEM con install_method=deb requiere hosts Debian-family (apt/deb).
+          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+      when: ng_siem_install_method == 'deb'
+
     - name: NG-SIEM deb installation flow
       when: ng_siem_install_method == 'deb'
       block:
@@ -138,6 +147,14 @@
           loop: "{{ ng_siem_docker_wait_for | default([]) }}"
           when: (ng_siem_docker_wait_for | default([])) | length > 0
 
+        - name: Assert NG-SIEM Docker healthcheck strategy is configured
+          ansible.builtin.assert:
+            that:
+              - (ng_siem_docker_wait_for | default([]) | length > 0) or ((ng_siem_docker_healthcheck_url | default('')) | length > 0)
+            fail_msg: >-
+              NG-SIEM Docker deployment requires at least one runtime validation:
+              define ng_siem_docker_wait_for or ng_siem_docker_healthcheck_url.
+
         - name: Validate NG-SIEM Docker health endpoint
           ansible.builtin.uri:
             url: "{{ ng_siem_docker_healthcheck_url }}"
@@ -148,7 +165,17 @@
           retries: "{{ ng_siem_docker_healthcheck_retries }}"
           delay: "{{ ng_siem_docker_healthcheck_delay }}"
           until: ng_siem_docker_healthcheck_result is succeeded
-          when: (ng_siem_docker_healthcheck_url | default('')) | length > 0
+          when:
+            - ng_siem_docker_healthcheck_enabled | bool
+            - (ng_siem_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Explain NG-SIEM healthcheck mode when URL probe is disabled
+          ansible.builtin.debug:
+            msg: >-
+              NG-SIEM Docker HTTP healthcheck skipped (ng_siem_docker_healthcheck_enabled={{ ng_siem_docker_healthcheck_enabled }},
+              url='{{ ng_siem_docker_healthcheck_url }}'). Runtime validation relies on wait_for endpoints.
+          when:
+            - not (ng_siem_docker_healthcheck_enabled | bool) or (ng_siem_docker_healthcheck_url | default('')) | length == 0
 
         - name: Debug NG-SIEM deployment summary
           ansible.builtin.debug:

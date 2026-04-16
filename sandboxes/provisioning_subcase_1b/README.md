@@ -13,26 +13,18 @@ For compatibility, `site.yml` in this folder is only a wrapper (`import_playbook
 > Regla de operación: este árbol no es un segundo entrypoint de provisioning.
 > Úsalo solo para empaquetado/compatibilidad; toda lógica funcional vive en `provisioning/`.
 
-## Package locations
+## Alcance de este directorio (wrapper-only)
 
-| Component | Deb package URL | Container image |
-|-----------|-----------------|-----------------|
-| BIPS | https://example.com/apt/pool/bips/bips-agent.deb | registry.example.com/bips:latest |
-| NG-SIEM | https://example.com/apt/pool/ng-siem/ng-siem-server.deb | registry.example.com/ng-siem:latest |
-| CICMS | https://example.com/apt/pool/cicms/cicms-server.deb | registry.example.com/cicms:latest |
-| NG-SOAR | https://example.com/apt/pool/ng-soar/ng-soar-platform.deb | registry.example.com/ng-soar:latest |
+- `site.yml` debe permanecer como wrapper (`import_playbook`) sin tareas propias de aprovisionamiento.
+- No se deben añadir aquí catálogos de paquetes, recetas de instalación manual ni defaults operativos.
+- Las variables y artefactos reales de despliegue se definen en `provisioning/group_vars/*.yml` y `provisioning/roles/**`.
+- Cualquier ajuste funcional debe implementarse únicamente en `provisioning/`.
 
-## Adding the private APT repository (manual fallback)
+## Nota sobre documentación de paquetes
 
-Repository setup is handled by canonical provisioning roles/playbooks. If you need to prepare a host
-manually for troubleshooting:
-
-```bash
-echo 'deb [trusted=yes] https://example.com/apt stable main' | \
-  sudo tee /etc/apt/sources.list.d/ngsoc.list
-sudo apt-get update
-sudo apt-get install bips ng-siem cicms ng-soar
-```
+Para evitar flujos competidores o placeholders engañosos, este árbol no mantiene tablas de paquetes ni
+instrucciones de instalación manual. La única referencia operativa válida para aprovisionamiento es
+`provisioning/README.md`.
 
 ## Trainee workstation tool versions
 
