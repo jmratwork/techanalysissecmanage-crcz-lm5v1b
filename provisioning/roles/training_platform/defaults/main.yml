@@ -1,7 +1,10 @@
 ---
+# Estrategia única: este rol NO despliega/sincroniza código.
+# Debe apuntar a la ruta real donde ya existe el repositorio en el host remoto.
 training_platform_app_dir: /opt/subcase_1b/training_platform
 training_platform_venv_path: "{{ training_platform_app_dir }}/.venv"
 training_platform_requirements_file: "{{ training_platform_app_dir }}/requirements.txt"
+training_platform_entrypoint: "{{ training_platform_app_dir }}/app.py"
 training_platform_service_name: training_platform
 training_platform_env_file: /etc/default/training_platform
 training_platform_service_user: root
@@ -20,3 +23,9 @@ training_platform_misp_api_key: ""
 training_platform_kypo_url: ""
 training_platform_lti_client_id: ""
 training_platform_lti_deployment_id: ""
+
+# Optional validations for external integrations.
+training_platform_openedx_enabled: false
+training_platform_misp_enabled: false
+training_platform_kypo_enabled: false
+training_platform_lti_enabled: false
