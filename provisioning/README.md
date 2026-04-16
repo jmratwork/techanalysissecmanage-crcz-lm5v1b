@@ -30,6 +30,26 @@ Ejecuta siempre desde la raíz del repositorio y sigue este orden:
 
 > Importante: antes de ejecutar en docker mode, deben existir los archivos reales `provisioning/group_vars/all.yml` y `provisioning/group_vars/subcase_1b.yml`.
 
+### Coherencia explícita: topología ↔ inventario ↔ playbook
+
+Referencia de topología para Subcaso 1b: `sandboxes/topology_subcase_1b.yaml`.
+
+| Host canónico | IP en topología (`sandboxes/topology_subcase_1b.yaml`) | Grupo en `provisioning/inventory.ini` | Rol aplicado en `provisioning/playbook.yml` |
+|---|---|---|---|
+| `training_platform` | `10.10.0.2` | `training_platform` | `training_platform` |
+| `trainee_workstation` | `10.10.0.3` | `trainee_workstation` | `trainee_workstation` |
+| `cyber_range` | `10.10.0.4` | `cyber_range` | `cyber_range_setup` |
+| `randomization_platform` | `10.10.0.5` | `randomization_platform` | `randomization_platform` |
+| `bips` | `10.10.0.6` | `bips` | `common_bootstrap` + `bips` |
+| `ng_siem` | `10.10.0.7` | `ng_siem` | `common_bootstrap` + `ng_siem` |
+| `cicms` | `10.10.0.8` | `cicms` | `common_bootstrap` + `cicms` |
+| `ng_soar` | `10.10.0.9` | `ng_soar` | `common_bootstrap` + `ng_soar` |
+| `router` | `10.10.0.1` | `router` | `router_noop` (no-op explícito) |
+
+Notas de coherencia:
+- `inventory.ini` usa `ansible_host=<hostname>` (resolución por nombre), por lo que los valores IP de la topología no se duplican en el inventario canónico.
+- `soc_server` no existe en la topología ni en el inventario canónico de Subcaso 1b.
+
 ### Grupos reales del inventario
 
 Los grupos definidos actualmente en `provisioning/inventory.ini` son:
