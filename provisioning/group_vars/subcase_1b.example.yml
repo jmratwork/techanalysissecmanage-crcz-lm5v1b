@@ -1,0 +1,22 @@
+# Copia este archivo a provisioning/group_vars/subcase_1b.yml antes de ejecutar en docker mode.
+# Variables mínimas de ejemplo para CYNET en modo Docker.
+
+bips_install_method: docker
+bips_docker_enabled: true
+bips_docker_image: registry.interna.example/bips
+bips_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+ng_siem_install_method: docker
+ng_siem_docker_enabled: true
+ng_siem_docker_image: registry.interna.example/ng-siem
+ng_siem_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+cicms_install_method: docker
+cicms_docker_enabled: true
+cicms_docker_image: registry.interna.example/cicms
+cicms_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+ng_soar_install_method: docker
+ng_soar_docker_enabled: true
+ng_soar_docker_image: registry.interna.example/ng-soar
+ng_soar_docker_tag: "__REQUIRED_DOCKER_TAG__"
