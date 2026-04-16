@@ -2,23 +2,36 @@
 
 ## Variables principales
 - `cicms_enabled`: activa/desactiva el rol.
-- `cicms_install_method`: método de instalación (`deb`).
-- `cicms_repo_url`, `cicms_package_path`, `cicms_package_checksum`: origen e integridad del paquete.
+- `cicms_install_method`: método efectivo de instalación (`deb` o `docker`).
+- `cicms_repo_url`, `cicms_package_path`, `cicms_package_checksum`: origen e integridad del paquete para modo `deb`.
 - `cicms_service_name`, `cicms_config_path`: servicio y ruta de configuración.
 - `cicms_check_connectivity`, `cicms_min_free_kb`: validaciones previas opcionales.
-- `cicms_has_docker_artifacts`: si existe artefacto Docker real, no usar instalación `.deb`.
+- `cicms_docker_enabled`, `cicms_docker_image`, `cicms_docker_tag`: control y artefacto de despliegue en Docker.
 
-## Imágenes Docker obligatorias
-Cuando `cicms_install_method: docker` (o `cicms_docker_enabled: true`) debes inyectar valores reales para:
-- `cicms_docker_image`
-- `cicms_docker_tag`
+## Defaults reales (fuente: `defaults/main.yml`)
 
-Ejemplo en `inventory/group_vars/all.yml`:
+| Variable | Default actual | Notas |
+| --- | --- | --- |
+| `cicms_install_method` | `{{ 'docker' if cicms_docker_enabled else 'deb' }}` | Se calcula dinámicamente con `cicms_docker_enabled`. |
+| `cicms_docker_enabled` | `false` | Si no se sobreescribe, el flujo resultante es `deb`. |
+| `cicms_docker_image` | `__REQUIRED_DOCKER_IMAGE__` | Placeholder obligatorio; debe reemplazarse en `group_vars` del entorno. |
+| `cicms_docker_tag` | `__REQUIRED_DOCKER_TAG__` | Placeholder obligatorio; debe reemplazarse en `group_vars` del entorno. |
+| `cicms_docker_ports` | `["8800:8080"]` | Puerto host:contenedor por defecto. |
+
+## Mínimo requerido para Docker en subcase 1b
+
+Para ejecutar este rol en Docker en Subcaso 1b debes definir **exactamente** estas variables:
+
+- `cicms_install_method: docker`
+- `cicms_docker_enabled: true`
+- `cicms_docker_image: <imagen_real>`
+- `cicms_docker_tag: <tag_real>`
+
+Ejemplo (en `inventory/group_vars/all.yml` del entorno o equivalente):
 
 ```yaml
+cicms_install_method: docker
 cicms_docker_enabled: true
-cicms_docker_image: registry.interna.example/cicms
-cicms_docker_tag: "2026.04.0"
+cicms_docker_image: __REQUIRED_DOCKER_IMAGE__
+cicms_docker_tag: "__REQUIRED_DOCKER_TAG__"
 ```
-
-Si mantienes placeholders (`__REQUIRED_DOCKER_IMAGE__` o `__REQUIRED_DOCKER_TAG__`), el rol fallará en `tasks/main.yml` con un mensaje explícito.
