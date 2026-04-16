@@ -4,3 +4,118 @@
     name: common_bootstrap
   vars:
     common_bootstrap_install_docker: true
+
+- name: Validate cyber range setup role inputs
+  ansible.builtin.assert:
+    that:
+      - cyber_range_setup_work_dir | length > 0
+      - cyber_range_setup_log_dir | length > 0
+      - cyber_range_setup_owner | length > 0
+      - cyber_range_setup_group | length > 0
+    fail_msg: >-
+      cyber_range_setup role variables are invalid. Review work/log directory
+      and owner/group settings.
+
+- name: Assert supported OS family for package installation
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == 'Debian'
+    fail_msg: >-
+      cyber_range_setup currently supports Debian-family systems only.
+
+- name: Build package list for cyber range setup
+  ansible.builtin.set_fact:
+    cyber_range_setup_packages_effective: >-
+      {{
+        cyber_range_setup_packages_by_os_family[ansible_os_family]
+        | default([])
+      }}
+
+- name: Install base cyber range packages used by scenario/scripts
+  ansible.builtin.apt:
+    name: "{{ cyber_range_setup_packages_effective }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure cyber range working directory exists
+  ansible.builtin.file:
+    path: "{{ cyber_range_setup_work_dir }}"
+    state: directory
+    owner: "{{ cyber_range_setup_owner }}"
+    group: "{{ cyber_range_setup_group }}"
+    mode: '0755'
+
+- name: Ensure cyber range log directory exists
+  ansible.builtin.file:
+    path: "{{ cyber_range_setup_log_dir }}"
+    state: directory
+    owner: "{{ cyber_range_setup_owner }}"
+    group: "{{ cyber_range_setup_group }}"
+    mode: '0755'
+
+- name: Apply minimal kernel hardening sysctl profile
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-cyber-range-hardening.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv4.conf.default.accept_redirects = 0
+      net.ipv4.conf.all.send_redirects = 0
+      net.ipv4.conf.default.send_redirects = 0
+      net.ipv4.tcp_syncookies = 1
+
+- name: Reload sysctl settings
+  ansible.builtin.command:
+    cmd: sysctl --system
+  changed_when: false
+
+- name: Check scenario artifacts exist on controller
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  loop: "{{ cyber_range_setup_required_artifacts }}"
+  register: cyber_range_setup_artifact_stats
+
+- name: Build list of missing scenario artifacts
+  ansible.builtin.set_fact:
+    cyber_range_setup_missing_artifacts: >-
+      {{
+        cyber_range_setup_artifact_stats.results
+        | rejectattr('stat.exists', 'defined')
+        | map(attribute='item')
+        | list
+        + (
+          cyber_range_setup_artifact_stats.results
+          | selectattr('stat.exists', 'defined')
+          | rejectattr('stat.exists')
+          | map(attribute='item')
+          | list
+        )
+      }}
+
+- name: Assert full target artifacts are present when required
+  ansible.builtin.assert:
+    that:
+      - cyber_range_setup_missing_artifacts | length == 0
+    fail_msg: >-
+      Missing required cyber range scenario artifacts:
+      {{ cyber_range_setup_missing_artifacts | join(', ') }}.
+      Either provide the artifacts or set cyber_range_setup_require_full_target=false
+      to run baseline-only provisioning with explicit limitation notice.
+  when: cyber_range_setup_require_full_target | bool
+
+- name: Document explicit limitation when full target artifacts are missing
+  ansible.builtin.debug:
+    msg: >-
+      Limitation: full cyber range target is not provisioned because scenario
+      artifacts are missing on controller:
+      {{ cyber_range_setup_missing_artifacts | join(', ') }}.
+      Baseline setup (bootstrap/packages/directories/minimal hardening) was applied.
+  when:
+    - not cyber_range_setup_require_full_target | bool
+    - cyber_range_setup_missing_artifacts | length > 0
