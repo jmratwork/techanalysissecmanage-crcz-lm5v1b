@@ -8,6 +8,8 @@
 - `ng_siem_check_connectivity`, `ng_siem_min_free_kb`: validaciones previas opcionales.
 - `ng_siem_docker_enabled`, `ng_siem_docker_image`, `ng_siem_docker_tag`: control y artefacto de despliegue en Docker.
 
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
+
 ## Defaults reales (fuente: `defaults/main.yml`)
 
 | Variable | Default actual | Notas |

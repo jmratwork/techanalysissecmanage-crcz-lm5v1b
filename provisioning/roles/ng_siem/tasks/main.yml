@@ -16,6 +16,15 @@
           ng_siem_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
           Si no usarás deb, cambia ng_siem_install_method a "docker".
 
+    - name: Assert supported OS family for NG-SIEM deb flow
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == 'Debian'
+        fail_msg: >-
+          NG-SIEM con install_method=deb requiere hosts Debian-family (apt/deb).
+          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+      when: ng_siem_install_method == 'deb'
+
     - name: NG-SIEM deb installation flow
       when: ng_siem_install_method == 'deb'
       block:

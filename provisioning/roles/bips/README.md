@@ -8,6 +8,8 @@
 - `bips_check_connectivity`, `bips_min_free_kb`: validaciones previas opcionales.
 - `bips_docker_enabled`, `bips_docker_image`, `bips_docker_tag`: control y artefacto de despliegue en Docker.
 
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
+
 ## Defaults reales (fuente: `defaults/main.yml`)
 
 | Variable | Default actual | Notas |
