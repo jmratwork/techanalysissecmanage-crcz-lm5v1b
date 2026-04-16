@@ -136,3 +136,9 @@ Los wrappers de compatibilidad que importan el flujo canónico son:
 
 Ambos delegan en `provisioning/playbook.yml` para evitar desalineaciones entre playbooks/roles heredados.
 No dupliques tareas de aprovisionamiento en playbooks de sandbox o legacy.
+
+Además, `subcase_1b/ansible/roles/**` se considera **legado/no canónico**:
+
+- No debe editarse para cambios funcionales.
+- Cualquier cambio funcional debe hacerse en `provisioning/roles/**`.
+- Opcional recomendado: migrar/reducir el contenido legacy a wrappers o eliminarlo si no participa en el runtime de KYPO, conservando únicamente `subcase_1b/ansible/playbook.yml` como wrapper.
