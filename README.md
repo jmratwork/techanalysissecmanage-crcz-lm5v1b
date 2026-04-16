@@ -35,6 +35,8 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 
 No mantengas ni introduzcas lógica de aprovisionamiento paralela en `sandboxes/` o en `subcase_1b/ansible/roles/**`.
 
+Los archivos de `subcase_1b/ansible/roles/**` se conservan como snapshot legado para trazabilidad y no deben considerarse fuente de verdad ni runtime del flujo principal.
+
 ## CI checks (equivalentes locales)
 
 Estos son los mismos comandos ejecutados por `.github/workflows/ci.yml`:

@@ -14,9 +14,10 @@ Este directorio se mantiene solo por compatibilidad de rutas heredadas.
 
 - **Entrypoint canónico Subcaso 1b:** `provisioning/playbook.yml`
 - **Inventario canónico:** `provisioning/inventory.ini`
-- **Estado de `subcase_1b/ansible/roles/**`:** legado / **no canónico**.
+- **Estado de `subcase_1b/ansible/roles/**`:** snapshot legado / **no canónico** / fuera del runtime principal.
 - **Regla de mantenimiento:** no editar `subcase_1b/ansible/roles/**` para cambios funcionales; cualquier cambio de comportamiento debe implementarse en `provisioning/roles/**` y consumirse desde el entrypoint canónico.
 - **Regla operativa:** no ejecutar aprovisionamiento diario con este árbol; usar siempre el comando canónico desde la raíz.
+- **Referencia explícita:** ver `subcase_1b/ansible/roles/README.md` para la política de uso de los roles legacy.
 
 Comando recomendado (desde la raíz del repo):
 
