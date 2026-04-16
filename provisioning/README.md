@@ -3,13 +3,22 @@
 `provisioning/playbook.yml` es el **entrypoint canónico** del aprovisionamiento de Subcaso 1b.
 El inventario canónico es `provisioning/inventory.ini`.
 
-## Playbook e inventario definitivos
+## Flujo recomendado (docker mode)
 
-Ejecuta siempre desde la raíz del repositorio:
+Ejecuta siempre desde la raíz del repositorio y sigue este orden:
 
-```bash
-ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
-```
+1. **Copiar archivos de ejemplo a archivos reales**:
+   ```bash
+   cp provisioning/group_vars/all.example.yml provisioning/group_vars/all.yml
+   cp provisioning/group_vars/subcase_1b.example.yml provisioning/group_vars/subcase_1b.yml
+   ```
+2. **Rellenar variables obligatorias** en `all.yml` y `subcase_1b.yml` (imágenes, tags, credenciales y demás placeholders `__REQUIRED_*__`).
+3. **Ejecutar el playbook**:
+   ```bash
+   ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
+   ```
+
+> Importante: antes de ejecutar en docker mode, deben existir los archivos reales `provisioning/group_vars/all.yml` y `provisioning/group_vars/subcase_1b.yml`.
 
 ### Grupos reales del inventario
 
@@ -79,72 +88,12 @@ Los roles `bips`, `ng_siem`, `cicms` y `ng_soar` soportan `deb` y `docker` vía 
 
 > Importante: `common_bootstrap` ya se ejecuta antes de estos roles y con `common_bootstrap_install_docker: true`, por lo que la instalación de Docker (engine, compose plugin y prerequisitos) **no debe duplicarse** dentro de cada rol.
 
-### Variables nuevas por rol (docker)
+Para Docker en Subcaso 1b, usa como base:
 
-Cada rol mantiene el mismo patrón de variables, cambiando el prefijo:
+- `provisioning/group_vars/all.example.yml`
+- `provisioning/group_vars/subcase_1b.example.yml`
 
-- `bips_*`
-- `ng_siem_*`
-- `cicms_*`
-- `ng_soar_*`
-
-Variables clave por componente:
-
-- Método: `*_install_method` (`deb`/`docker`) y `*_docker_enabled`.
-- Imagen: `*_docker_image`, `*_docker_tag`, `*_docker_container_name`.
-- Puertos: `*_docker_ports`.
-- Volúmenes: `*_docker_volumes`.
-- Redes: `*_docker_networks`.
-- TLS: `*_docker_tls_enabled`, `*_docker_tls_cert_src`, `*_docker_tls_key_src`, `*_docker_tls_cert_dest`, `*_docker_tls_key_dest`.
-- Verificación TLS en healthcheck: `*_docker_healthcheck_validate_certs`.
-
-Defaults reales por rol (fuente: `provisioning/roles/*/defaults/main.yml`):
-
-| Rol | `*_install_method` por defecto | `*_docker_enabled` por defecto | Imagen por defecto | Tag por defecto | Puertos por defecto | Redes por defecto | TLS verify healthcheck |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `bips` | `{{ 'docker' if bips_docker_enabled else 'deb' }}` | `false` | `__REQUIRED_DOCKER_IMAGE__` | `__REQUIRED_DOCKER_TAG__` | `8600:8080` | `bips_net` | `false` |
-| `ng_siem` | `{{ 'docker' if ng_siem_docker_enabled else 'deb' }}` | `false` | `__REQUIRED_DOCKER_IMAGE__` | `__REQUIRED_DOCKER_TAG__` | `8700:5601` | `ng_siem_net` | `false` |
-| `cicms` | `{{ 'docker' if cicms_docker_enabled else 'deb' }}` | `false` | `__REQUIRED_DOCKER_IMAGE__` | `__REQUIRED_DOCKER_TAG__` | `8800:8080` | `cicms_net` | `false` |
-| `ng_soar` | `{{ 'docker' if ng_soar_docker_enabled else 'deb' }}` | `false` | `__REQUIRED_DOCKER_IMAGE__` | `__REQUIRED_DOCKER_TAG__` | `8900:8443` | `ng_soar_net` | `false` |
-
-Comportamiento real de `*_install_method`:
-
-- Es una variable derivada: si `*_docker_enabled` es `true`, el método efectivo pasa a `docker`.
-- Si `*_docker_enabled` se mantiene en `false` (default), el método efectivo permanece en `deb`.
-- Para evitar ambigüedades en inventario, en subcase 1b se recomienda fijar ambos (`*_install_method: docker` y `*_docker_enabled: true`).
-
-## Mínimo requerido para Docker en subcase 1b
-
-Para cada rol CYNET (`bips`, `ng_siem`, `cicms`, `ng_soar`), define **exactamente** estas variables obligatorias en `group_vars` del entorno (por ejemplo `inventory/group_vars/all.yml`):
-
-- `<rol>_install_method: docker`
-- `<rol>_docker_enabled: true`
-- `<rol>_docker_image: <imagen_real>`
-- `<rol>_docker_tag: <tag_real>`
-
-Ejemplo mínimo completo:
-
-```yaml
-bips_install_method: docker
-bips_docker_enabled: true
-bips_docker_image: __REQUIRED_DOCKER_IMAGE__
-bips_docker_tag: "__REQUIRED_DOCKER_TAG__"
-
-ng_siem_install_method: docker
-ng_siem_docker_enabled: true
-ng_siem_docker_image: __REQUIRED_DOCKER_IMAGE__
-ng_siem_docker_tag: "__REQUIRED_DOCKER_TAG__"
-
-cicms_install_method: docker
-cicms_docker_enabled: true
-cicms_docker_image: __REQUIRED_DOCKER_IMAGE__
-cicms_docker_tag: "__REQUIRED_DOCKER_TAG__"
-
-ng_soar_install_method: docker
-ng_soar_docker_enabled: true
-ng_soar_docker_image: __REQUIRED_DOCKER_IMAGE__
-ng_soar_docker_tag: "__REQUIRED_DOCKER_TAG__"
-```
+Y luego cópialos a sus equivalentes reales (`all.yml`, `subcase_1b.yml`) antes de ejecutar.
 
 ## Comandos Ansible exactos (incluyendo `--limit` por grupo)
 
@@ -174,31 +123,6 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit subcase_1b
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit 'bips:ng_siem:cicms:ng_soar'
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit 'training_platform,trainee_workstation'
-```
-
-### Ejemplos de ejecución en modo docker para CYNET
-
-```bash
-ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml \
-  --limit 'bips:ng_siem:cicms:ng_soar' \
-  -e bips_install_method=docker -e bips_docker_enabled=true \
-  -e ng_siem_install_method=docker -e ng_siem_docker_enabled=true \
-  -e cicms_install_method=docker -e cicms_docker_enabled=true \
-  -e ng_soar_install_method=docker -e ng_soar_docker_enabled=true
-```
-
-Ejemplo con overrides de imagen/puertos/red/TLS verify para un rol:
-
-```bash
-ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml \
-  --limit 'ng_siem' \
-  -e ng_siem_install_method=docker \
-  -e ng_siem_docker_enabled=true \
-  -e ng_siem_docker_image=__REQUIRED_DOCKER_IMAGE__ \
-  -e ng_siem_docker_tag=__REQUIRED_DOCKER_TAG__ \
-  -e 'ng_siem_docker_ports=["15601:5601"]' \
-  -e 'ng_siem_docker_networks=["soc_backbone"]' \
-  -e ng_siem_docker_healthcheck_validate_certs=true
 ```
 
 ## Compatibilidad
