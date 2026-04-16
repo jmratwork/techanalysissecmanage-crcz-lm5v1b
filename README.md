@@ -68,6 +68,12 @@ Host/grupo legado aislado:
 
 - `soc_server`: **deprecado/legacy**. No está en el inventario canónico ni se debe usar para ejecutar `provisioning/playbook.yml`.
 
+Verificación rápida por host (flujo canónico):
+
+- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit randomization_platform` valida la provisión mínima real de `randomization_platform`.
+- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit router` ejecuta el no-op explícito (`router_noop`) y deja trazabilidad visible.
+- **No ejecutar** `--limit soc_server`: ese grupo no forma parte del inventario canónico de Subcaso 1b.
+
 Para detalles operativos y comandos Ansible exactos, consulta `provisioning/README.md`.
 
 
@@ -79,11 +85,15 @@ Para detalles operativos y comandos Ansible exactos, consulta `provisioning/READ
 2. **Authenticate to CyberRangeCZ** – Ensure VPN or direct connectivity and log into the portal.
 3. **Prepare the Scenario** – Upload the penetration testing helper scripts from `subcase_1b/scripts/` to the appropriate CRCZ repositories so they are accessible to the exercise.
 4. **Launch the Cyber Range** – Use `subcase_1b/scripts/cyber_range_start.sh` to start the simulated environment for Subcase 1b and provision the trainee workstation.
-5. **Start the Training Platform Runner** – Execute `subcase_1b/scripts/training_platform_start.sh` to launch the training platform services used in the penetration testing labs described in [`docs/subcase_1b_guide.md`](docs/subcase_1b_guide.md).
+5. **Start the Training Platform (canónico)** – Provisiona `training_platform` desde Ansible canónico:
+   ```bash
+   ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
+   ```
+   `subcase_1b/scripts/training_platform_start.sh` se mantiene como helper de compatibilidad/lab (no como flujo operativo principal).
 
 ### Phishing Quiz Module
 
-Running `subcase_1b/scripts/training_platform_start.sh` launches a training platform that now includes a phishing-awareness quiz. Set the `PASSWORD` environment variable to a strong value before starting the service. Once the service is up, the following endpoints can be used to interact with the quiz:
+Tras aprovisionar `training_platform` por el flujo canónico, la aplicación incluye un phishing-awareness quiz. Si usas el helper legacy `subcase_1b/scripts/training_platform_start.sh`, define `PASSWORD` con un valor fuerte antes de arrancar. Una vez activo el servicio, puedes usar:
 
 - `GET /quiz/start` – obtain questions.
 - `POST /quiz/submit` – send answers and record the score.

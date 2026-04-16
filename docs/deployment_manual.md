@@ -42,13 +42,14 @@ For systems without Internet access, pre-download required packages and modules 
 ## Service Orchestration
 
 1. **Provision VMs** – Start VMs from the prepared images or snapshots and verify connectivity.
-2. **Install Python dependencies** – Before running any scenario scripts, install required packages:
+2. **Run canonical provisioning**
    ```bash
-   pip install -r subcase_1b/training_platform/requirements.txt   # for Subcase 1b
+   ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
    ```
-3. **Launch core services**
-   - Start BIPS, NG‑SIEM, CICMS, NG‑SOAR, and related components using the scripts under `subcase_1b/scripts/`.
-   - If `systemctl` is unavailable, set `DIRECT_START=1` to invoke legacy service scripts.
+   For focused operations, use `--limit` (for example `--limit training_platform`).
+3. **Use scripts only as compatibility helpers**
+   - `subcase_1b/scripts/*.sh` remain available for lab/bootstrap scenarios, but are not a second canonical provisioning implementation.
+   - Prefer the Ansible-managed systemd/nginx services created by `provisioning/roles/**`.
 4. **Validate operation**
    - Confirm ports are listening and dashboards are reachable.
    - Run the scenario‑specific validation steps from the respective guide.
