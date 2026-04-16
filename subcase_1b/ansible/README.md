@@ -14,6 +14,8 @@ Este directorio se mantiene solo por compatibilidad de rutas heredadas.
 
 - **Entrypoint canónico Subcaso 1b:** `provisioning/playbook.yml`
 - **Inventario canónico:** `provisioning/inventory.ini`
+- **Estado de `subcase_1b/ansible/roles/**`:** legado / **no canónico**.
+- **Regla de mantenimiento:** no editar `subcase_1b/ansible/roles/**` para cambios funcionales; cualquier cambio de comportamiento debe implementarse en `provisioning/roles/**` y consumirse desde el entrypoint canónico.
 
 Comando recomendado (desde la raíz del repo):
 
@@ -22,3 +24,5 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
 
 `subcase_1b/ansible/playbook.yml` ahora es un wrapper (`import_playbook`) hacia el playbook canónico para evitar divergencias entre árboles de roles/playbooks.
+
+Opcional recomendado: reemplazar contenido legacy por wrappers o eliminarlo si no se usa en runtime de KYPO, dejando solo `playbook.yml` wrapper en este árbol de compatibilidad.
