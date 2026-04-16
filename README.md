@@ -32,8 +32,19 @@ PYTHONPATH=. pytest tests/ soc_alerts/tests/
 El aprovisionamiento canónico de Subcaso 1b vive en `provisioning/playbook.yml`.
 La decisión actual por host es:
 
+- `training_platform`: provisión activa (`training_platform`).
+- `trainee_workstation`: provisión activa (`trainee_workstation`).
+- `cyber_range`: provisión activa (`cyber_range_setup`).
 - `randomization_platform`: **sí tiene provisión mínima activa** mediante un rol dedicado (`randomization_platform`) que instala runtime mínimo (bash), crea directorios de logs y despliega/ejecuta el script artefacto como servicio systemd.
-- `router`: **no tiene provisión activa en este repositorio**; se mantiene un rol explícito `router_noop` con `assert`/`debug` para dejar esta condición visible y evitar silencio ambiguo.
+- `bips`: provisión activa (`common_bootstrap` + `bips`).
+- `ng_siem`: provisión activa (`common_bootstrap` + `ng_siem`).
+- `cicms`: provisión activa (`common_bootstrap` + `cicms`).
+- `ng_soar`: provisión activa (`common_bootstrap` + `ng_soar`).
+- `router`: **sin provisión activa funcional** en este repositorio; se mantiene un rol explícito `router_noop` con `assert`/`debug` para dejar esta condición visible y evitar silencio ambiguo.
+
+Host/grupo legado aislado:
+
+- `soc_server`: **deprecado/legacy**. No está en el inventario canónico ni se debe usar para ejecutar `provisioning/playbook.yml`.
 
 Para detalles operativos y comandos Ansible exactos, consulta `provisioning/README.md`.
 
@@ -113,6 +124,13 @@ to avoid duplicate reports.
 - **Training Platform Logs** – Refer to the `subcase_1b/scripts` directory for runner logs and consult [`docs/subcase_1b_guide.md`](docs/subcase_1b_guide.md) for expected service behavior.
 
 Additional theoretical background and workflow guidance can be found in [`docs/training_workflows.md`](docs/training_workflows.md). For day‑to‑day alert handling, analysts should review the [`SOC Analyst Playbook`](docs/soc_analyst_playbook.md).
+
+## Known limitations / TODOs reales
+
+- El host `router` permanece como no-op documentado (`router_noop`), sin tareas de hardening/enrutamiento aplicadas desde este repositorio.
+- El grupo `soc_server` está aislado como legado: no forma parte del flujo canónico de aprovisionamiento.
+- La carpeta `subcase_1b/ansible/roles/**` sigue siendo legacy (compatibilidad); los cambios funcionales deben aplicarse en `provisioning/roles/**`.
+- Persisten dependencias de integraciones externas (Open edX, IRIS, MISP, KYPO) que requieren credenciales y endpoints válidos fuera de este repositorio.
 
 ## Scenario Resources
 

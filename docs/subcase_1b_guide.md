@@ -5,6 +5,15 @@ See [deployment manual](deployment_manual.md) for baseline environment setup and
 ## Objective
 Provide self-paced training on penetration testing and vulnerability assessments. The Training Instructor creates courses and configures Cyber Range scenarios simulating CYNET's network infrastructure. Trainees run semi-automated penetration tests to locate potential vulnerabilities and attack entry points.
 
+## Canonical host naming and scope
+
+Use only canonical host/group names from `provisioning/inventory.ini`:
+`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`.
+
+- Active roles in the canonical playbook: all hosts above except `router`.
+- `router` is intentionally documented as no-op (`router_noop`).
+- `soc_server` is legacy/isolated and is not part of Subcase 1b canonical provisioning.
+
 ## Workflow Diagram
 
 ```mermaid

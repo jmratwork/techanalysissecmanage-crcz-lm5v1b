@@ -36,6 +36,7 @@ Los grupos definidos actualmente en `provisioning/inventory.ini` son:
 - `subcase_1b` (grupo padre vía `:children`)
 
 > Nota: el grupo `soc_server` está **deprecado** y no debe usarse.
+> Se mantiene únicamente como referencia legacy aislada fuera del flujo canónico.
 
 ## Qué se despliega localmente vs integraciones externas
 
@@ -53,6 +54,12 @@ El playbook `provisioning/playbook.yml` aplica roles locales sobre estos grupos:
 - `ng_soar` → `common_bootstrap` + `ng_soar`
 - `randomization_platform` → `randomization_platform` (provisión mínima real: runtime bash, directorio de logs, script artefacto y servicio systemd)
 - `router` → `router_noop` (no-op explícito con `assert` + `debug`: “sin provisión activa en este repositorio”)
+
+### Estado exacto por host (activo vs no-op)
+
+- **Hosts con rol activo**: `training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`.
+- **Host documentado como no-op**: `router` (rol `router_noop`).
+- **Host/grupo legacy aislado**: `soc_server` (no inventariado en `provisioning/inventory.ini`, no ejecutar `--limit soc_server`).
 
 ### Integraciones externas (no se aprovisionan como servicios aquí)
 
@@ -154,3 +161,10 @@ Además, `subcase_1b/ansible/roles/**` se considera **legado/no canónico**:
 - No debe editarse para cambios funcionales.
 - Cualquier cambio funcional debe hacerse en `provisioning/roles/**`.
 - Opcional recomendado: migrar/reducir el contenido legacy a wrappers o eliminarlo si no participa en el runtime de KYPO, conservando únicamente `subcase_1b/ansible/playbook.yml` como wrapper.
+
+## Known limitations / TODOs reales
+
+- `router` permanece como host no-op intencional: no hay tareas de configuración de red/firewall en el flujo canónico.
+- `soc_server` sigue como alias legacy aislado para documentación histórica; cualquier referencia debe migrarse a grupos canónicos.
+- Aún existe código/roles legacy en `subcase_1b/ansible/roles/**` por compatibilidad; falta completar su reducción a wrappers mínimos.
+- Parte del despliegue depende de plataformas externas (Open edX, IRIS, MISP, KYPO), por lo que el playbook no puede validar esas integraciones sin credenciales reales.
