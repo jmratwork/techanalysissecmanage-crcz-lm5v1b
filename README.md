@@ -68,6 +68,12 @@ Host/grupo legado aislado:
 
 - `soc_server`: **deprecado/legacy**. No está en el inventario canónico ni se debe usar para ejecutar `provisioning/playbook.yml`.
 
+Verificación rápida por host (flujo canónico):
+
+- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit randomization_platform` valida la provisión mínima real de `randomization_platform`.
+- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit router` ejecuta el no-op explícito (`router_noop`) y deja trazabilidad visible.
+- **No ejecutar** `--limit soc_server`: ese grupo no forma parte del inventario canónico de Subcaso 1b.
+
 Para detalles operativos y comandos Ansible exactos, consulta `provisioning/README.md`.
 
 
