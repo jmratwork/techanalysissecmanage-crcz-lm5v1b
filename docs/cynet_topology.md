@@ -36,3 +36,5 @@ Based on the canonical playbook (`provisioning/playbook.yml`):
   - **c2_server** – Debian 11
   - **soc_server** – Debian 11 (**legacy/isolated**: not part of canonical Subcase 1b inventory or provisioning flow)
   - **cti_component** – Debian 11
+
+> Canonical Subcase 1b note: do not run `ansible-playbook ... --limit soc_server` against `provisioning/inventory.ini`; `soc_server` is outside the canonical inventory/flow.
