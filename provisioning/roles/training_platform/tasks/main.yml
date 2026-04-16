@@ -8,17 +8,74 @@
     state: present
     update_cache: yes
 
-- name: Validate training platform source path
+- name: Check training platform requirements file
   ansible.builtin.stat:
-    path: "{{ training_platform_app_dir }}/app.py"
+    path: "{{ training_platform_requirements_file }}"
+  register: training_platform_requirements
+
+- name: Assert training platform requirements file exists
+  ansible.builtin.assert:
+    that:
+      - training_platform_requirements.stat.exists
+      - training_platform_requirements.stat.isreg
+    fail_msg: >-
+      requirements.txt no existe en {{ training_platform_requirements_file }}.
+      Este rol no copia código: define training_platform_app_dir con la ruta real del repo.
+
+- name: Check training platform application entrypoint
+  ansible.builtin.stat:
+    path: "{{ training_platform_entrypoint }}"
   register: training_platform_app
 
-- name: Fail if training platform source is missing
-  ansible.builtin.fail:
-    msg: >-
-      training_platform app.py was not found in {{ training_platform_app_dir }}.
-      Set training_platform_app_dir to the deployed source directory.
-  when: not training_platform_app.stat.exists
+- name: Assert training platform app entrypoint exists
+  ansible.builtin.assert:
+    that:
+      - training_platform_app.stat.exists
+      - training_platform_app.stat.isreg
+    fail_msg: >-
+      app.py no existe en {{ training_platform_entrypoint }}.
+      Este rol no copia código: define training_platform_app_dir con la ruta real del repo.
+
+- name: Assert Open edX integration variables
+  ansible.builtin.assert:
+    that:
+      - training_platform_openedx_url | length > 0
+      - (training_platform_openedx_api_token | length > 0) or (training_platform_openedx_session_cookie | length > 0)
+    fail_msg: >-
+      Open edX está habilitado pero faltan variables críticas.
+      Requiere training_platform_openedx_url y al menos una credencial
+      (training_platform_openedx_api_token o training_platform_openedx_session_cookie).
+  when: training_platform_openedx_enabled | bool
+
+- name: Assert MISP integration variables
+  ansible.builtin.assert:
+    that:
+      - training_platform_misp_url | length > 0
+      - training_platform_misp_api_key | length > 0
+    fail_msg: >-
+      MISP está habilitado pero faltan variables críticas.
+      Requiere training_platform_misp_url y training_platform_misp_api_key.
+  when: training_platform_misp_enabled | bool
+
+- name: Assert KYPO integration variables
+  ansible.builtin.assert:
+    that:
+      - training_platform_kypo_url | length > 0
+    fail_msg: >-
+      KYPO está habilitado pero falta training_platform_kypo_url.
+  when: training_platform_kypo_enabled | bool
+
+- name: Assert LTI integration variables
+  ansible.builtin.assert:
+    that:
+      - training_platform_lti_tool_private_key | length > 0
+      - training_platform_lti_client_id | length > 0
+      - training_platform_lti_deployment_id | length > 0
+    fail_msg: >-
+      LTI está habilitado pero faltan variables críticas.
+      Requiere training_platform_lti_tool_private_key,
+      training_platform_lti_client_id y training_platform_lti_deployment_id.
+  when: training_platform_lti_enabled | bool
 
 - name: Install python requirements in virtualenv
   ansible.builtin.pip:
