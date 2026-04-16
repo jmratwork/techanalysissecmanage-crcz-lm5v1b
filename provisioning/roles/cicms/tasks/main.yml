@@ -12,7 +12,9 @@
           - cicms_install_method != 'docker' or cicms_docker_enabled | bool
           - cicms_install_method != 'docker' or cicms_docker_project_src | length > 0
         fail_msg: >-
-          CICMS prerequisites failed. Validate install_method and required package/Docker variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
+          Configuración inválida para CICMS. Si usarás deb, define cicms_repo_url, cicms_package_path y
+          cicms_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
+          Si no usarás deb, cambia cicms_install_method a "docker".
 
     - name: CICMS deb installation flow
       when: cicms_install_method == 'deb'
@@ -79,7 +81,9 @@
               - cicms_docker_image != '__REQUIRED_DOCKER_IMAGE__'
               - cicms_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              CICMS Docker prerequisites failed. Validate project path, templates, networks and wait_for variables, and provide non-placeholder docker_image/docker_tag values via inventory/group_vars.
+              Faltan variables Docker de CICMS. Define cicms_docker_image y cicms_docker_tag con valores reales en
+              provisioning/group_vars/subcase_1b.yml (o en group_vars/host_vars de tu inventario), y verifica
+              cicms_docker_project_src/cicms_docker_networks/cicms_docker_wait_for.
 
         - name: Ensure CICMS Docker project directory exists
           ansible.builtin.file:
