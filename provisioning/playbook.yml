@@ -26,7 +26,7 @@
   roles:
     - role: common_bootstrap
       vars:
-        common_bootstrap_install_docker: true
+        common_bootstrap_install_docker: "{{ (bips_install_method | default('deb')) == 'docker' or (bips_docker_enabled | default(false) | bool) }}"
     - bips
 
 - hosts: cicms
@@ -34,7 +34,7 @@
   roles:
     - role: common_bootstrap
       vars:
-        common_bootstrap_install_docker: true
+        common_bootstrap_install_docker: "{{ (cicms_install_method | default('deb')) == 'docker' or (cicms_docker_enabled | default(false) | bool) }}"
     - cicms
 
 - hosts: ng_siem
@@ -42,7 +42,7 @@
   roles:
     - role: common_bootstrap
       vars:
-        common_bootstrap_install_docker: true
+        common_bootstrap_install_docker: "{{ (ng_siem_install_method | default('deb')) == 'docker' or (ng_siem_docker_enabled | default(false) | bool) }}"
     - ng_siem
 
 - hosts: ng_soar
@@ -50,5 +50,5 @@
   roles:
     - role: common_bootstrap
       vars:
-        common_bootstrap_install_docker: true
+        common_bootstrap_install_docker: "{{ (ng_soar_install_method | default('deb')) == 'docker' or (ng_soar_docker_enabled | default(false) | bool) }}"
     - ng_soar
