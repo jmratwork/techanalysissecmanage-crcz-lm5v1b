@@ -138,6 +138,14 @@
           loop: "{{ cicms_docker_wait_for | default([]) }}"
           when: (cicms_docker_wait_for | default([])) | length > 0
 
+        - name: Assert CICMS Docker healthcheck strategy is configured
+          ansible.builtin.assert:
+            that:
+              - (cicms_docker_wait_for | default([]) | length > 0) or ((cicms_docker_healthcheck_url | default('')) | length > 0)
+            fail_msg: >-
+              CICMS Docker deployment requires at least one runtime validation:
+              define cicms_docker_wait_for or cicms_docker_healthcheck_url.
+
         - name: Validate CICMS Docker health endpoint
           ansible.builtin.uri:
             url: "{{ cicms_docker_healthcheck_url }}"
@@ -148,7 +156,17 @@
           retries: "{{ cicms_docker_healthcheck_retries }}"
           delay: "{{ cicms_docker_healthcheck_delay }}"
           until: cicms_docker_healthcheck_result is succeeded
-          when: (cicms_docker_healthcheck_url | default('')) | length > 0
+          when:
+            - cicms_docker_healthcheck_enabled | bool
+            - (cicms_docker_healthcheck_url | default('')) | length > 0
+
+        - name: Explain CICMS healthcheck mode when URL probe is disabled
+          ansible.builtin.debug:
+            msg: >-
+              CICMS Docker HTTP healthcheck skipped (cicms_docker_healthcheck_enabled={{ cicms_docker_healthcheck_enabled }},
+              url='{{ cicms_docker_healthcheck_url }}'). Runtime validation relies on wait_for endpoints.
+          when:
+            - not (cicms_docker_healthcheck_enabled | bool) or (cicms_docker_healthcheck_url | default('')) | length == 0
 
         - name: Debug CICMS deployment summary
           ansible.builtin.debug:

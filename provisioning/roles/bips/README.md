@@ -7,6 +7,9 @@
 - `bips_service_name`, `bips_config_path`: servicio y ruta de configuración.
 - `bips_check_connectivity`, `bips_min_free_kb`: validaciones previas opcionales.
 - `bips_docker_enabled`, `bips_docker_image`, `bips_docker_tag`: control y artefacto de despliegue en Docker.
+- `bips_docker_wait_for`, `bips_docker_healthcheck_enabled`, `bips_docker_healthcheck_url`: validación runtime post-deploy (puerto y/o endpoint HTTP).
+
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
 
 > Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
 

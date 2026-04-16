@@ -7,6 +7,9 @@
 - `cicms_service_name`, `cicms_config_path`: servicio y ruta de configuración.
 - `cicms_check_connectivity`, `cicms_min_free_kb`: validaciones previas opcionales.
 - `cicms_docker_enabled`, `cicms_docker_image`, `cicms_docker_tag`: control y artefacto de despliegue en Docker.
+- `cicms_docker_wait_for`, `cicms_docker_healthcheck_enabled`, `cicms_docker_healthcheck_url`: validación runtime post-deploy (puerto y/o endpoint HTTP).
+
+> Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
 
 > Nota de compatibilidad: el flujo `install_method: deb` usa `apt` sobre paquetes `.deb`, por lo que requiere hosts Debian-family.
 
