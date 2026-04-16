@@ -130,6 +130,15 @@ Resumen operativo para provisioning:
 - Escaneo/seguridad: `OPENVAS_TARGET_HOST`.
 - TLS MISP: `MISP_CA_BUNDLE`.
 
+### Training platform: estrategia de código (ruta real vs sincronización)
+
+El rol `training_platform` soporta dos modos explícitos para disponibilidad de código:
+
+- `training_platform_source_mode: assert_present` (default): exige que el código ya exista en `training_platform_app_dir` en el host remoto.
+- `training_platform_source_mode: sync_from_repo`: sincroniza `subcase_1b/training_platform` desde el controller (`training_platform_source_dir`) hacia `training_platform_app_dir` antes de crear venv/systemd/nginx.
+
+Si tu entorno no monta previamente el repositorio en la VM, usa `sync_from_repo` para evitar un estado “aparentemente listo” pero no ejecutable.
+
 ## CYNET components in docker mode
 
 Los roles `bips`, `ng_siem`, `cicms` y `ng_soar` soportan `deb` y `docker` vía `*_install_method`.
