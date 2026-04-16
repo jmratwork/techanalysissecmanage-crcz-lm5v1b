@@ -14,6 +14,12 @@ Use only canonical host/group names from `provisioning/inventory.ini`:
 - `router` is intentionally documented as no-op (`router_noop`).
 - `soc_server` is legacy/isolated and is not part of Subcase 1b canonical provisioning.
 
+### Canonical status focus (randomization/router/legacy)
+
+- `randomization_platform` is part of the canonical flow with a **minimal real role** (`randomization_platform`): installs minimal runtime, prepares logs, deploys script artifact and manages service state.
+- `router` is intentionally a **documented no-op** via role `router_noop` in `provisioning/playbook.yml`.
+- `soc_server` is **not a canonical Subcase 1b target** and must not be used with `--limit` in canonical provisioning commands.
+
 ## Workflow Diagram
 
 ```mermaid

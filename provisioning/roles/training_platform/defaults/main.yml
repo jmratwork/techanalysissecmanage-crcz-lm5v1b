@@ -1,6 +1,11 @@
 ---
-# Estrategia única: este rol NO despliega/sincroniza código.
-# Debe apuntar a la ruta real donde ya existe el repositorio en el host remoto.
+# Estrategia de código para training_platform:
+# - assert_present (default): exige que el código ya exista en el host remoto.
+# - sync_from_repo: sincroniza código desde el repositorio local (controller) al host remoto.
+training_platform_source_mode: assert_present
+training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
+training_platform_sync_delete: false
+
 training_platform_app_dir: /opt/subcase_1b/training_platform
 training_platform_venv_path: "{{ training_platform_app_dir }}/.venv"
 training_platform_requirements_file: "{{ training_platform_app_dir }}/requirements.txt"
