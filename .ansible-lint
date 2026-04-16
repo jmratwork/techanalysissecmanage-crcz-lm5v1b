@@ -1,0 +1,3 @@
+profile: min
+exclude_paths:
+  - subcase_1b/ansible/
