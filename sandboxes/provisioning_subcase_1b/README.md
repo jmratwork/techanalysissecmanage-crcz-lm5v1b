@@ -10,6 +10,13 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 For compatibility, `site.yml` in this folder is only a wrapper (`import_playbook`) that delegates to
 `../../provisioning/playbook.yml`.
 
+> ⚠️ **Placeholder warning:** URLs and image names in this file using `example.com` are illustrative only and are not expected to resolve.
+> This sandbox tree is packaging/compatibility support; executable provisioning values must be defined in:
+> - `provisioning/group_vars/all.yml`
+> - `provisioning/group_vars/subcase_1b.yml`
+> starting from their `.example.yml` counterparts and replacing all `__REQUIRED_*__` placeholders.
+
+
 > Regla de operación: este árbol no es un segundo entrypoint de provisioning.
 > Úsalo solo para empaquetado/compatibilidad; toda lógica funcional vive en `provisioning/`.
 

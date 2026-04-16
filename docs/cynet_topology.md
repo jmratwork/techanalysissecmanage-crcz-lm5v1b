@@ -5,7 +5,7 @@
 - Virtual machines (canonical host naming):
   - **training_platform** – Debian 11
   - **trainee_workstation** – Kali
-  - **cyber_range** – Metasploitable2
+  - **cyber_range** – Debian 11
   - **randomization_platform** – Debian 11
   - **bips** – Debian 11
   - **ng_siem** – Debian 11
