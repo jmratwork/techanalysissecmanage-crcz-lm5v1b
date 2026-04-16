@@ -1,0 +1,41 @@
+---
+- name: Install minimal randomization platform runtime dependencies
+  ansible.builtin.apt:
+    name:
+      - bash
+    state: present
+    update_cache: yes
+
+- name: Ensure randomization platform log directory exists
+  ansible.builtin.file:
+    path: "{{ randomization_platform_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy randomization platform start script artifact
+  ansible.builtin.template:
+    src: randomization_platform_start.sh.j2
+    dest: "{{ randomization_platform_script_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  notify: restart randomization platform service
+
+- name: Configure randomization platform systemd unit
+  ansible.builtin.template:
+    src: randomization_platform.service.j2
+    dest: "/etc/systemd/system/{{ randomization_platform_service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - reload systemd daemon
+    - restart randomization platform service
+
+- name: Ensure randomization platform service is enabled and started
+  ansible.builtin.service:
+    name: "{{ randomization_platform_service_name }}"
+    state: started
+    enabled: yes

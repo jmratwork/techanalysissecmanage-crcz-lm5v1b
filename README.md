@@ -15,6 +15,16 @@ This repository provides complete, ready‑to‑deploy instructions for CyberRan
 
 See [deployment manual](docs/deployment_manual.md) for detailed steps including VM preparation, service orchestration, teardown, and environment reset.
 
+## Estado de aprovisionamiento por host (playbook canónico)
+
+El aprovisionamiento canónico de Subcaso 1b vive en `provisioning/playbook.yml`.
+La decisión actual por host es:
+
+- `randomization_platform`: **sí tiene provisión mínima activa** mediante un rol dedicado (`randomization_platform`) que instala runtime mínimo (bash), crea directorios de logs y despliega/ejecuta el script artefacto como servicio systemd.
+- `router`: **no tiene provisión activa en este repositorio**; se mantiene un rol explícito `router_noop` con `assert`/`debug` para dejar esta condición visible y evitar silencio ambiguo.
+
+Para detalles operativos y comandos Ansible exactos, consulta `provisioning/README.md`.
+
 
 1. **Clone the Repository**
    ```bash

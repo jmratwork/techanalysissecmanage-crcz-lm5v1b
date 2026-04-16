@@ -51,6 +51,8 @@ El playbook `provisioning/playbook.yml` aplica roles locales sobre estos grupos:
 - `cicms` → `common_bootstrap` + `cicms`
 - `ng_siem` → `common_bootstrap` + `ng_siem`
 - `ng_soar` → `common_bootstrap` + `ng_soar`
+- `randomization_platform` → `randomization_platform` (provisión mínima real: runtime bash, directorio de logs, script artefacto y servicio systemd)
+- `router` → `router_noop` (no-op explícito con `assert` + `debug`: “sin provisión activa en este repositorio”)
 
 ### Integraciones externas (no se aprovisionan como servicios aquí)
 

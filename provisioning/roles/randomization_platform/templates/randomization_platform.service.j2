@@ -1,0 +1,13 @@
+[Unit]
+Description=Randomization Platform bootstrap service
+After=network.target
+
+[Service]
+Type=oneshot
+Environment=LOG_FILE={{ randomization_platform_log_file }}
+Environment=EVAL_PROFILE={{ randomization_platform_eval_profile }}
+ExecStart={{ randomization_platform_script_path }}
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

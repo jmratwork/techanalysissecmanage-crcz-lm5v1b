@@ -1,0 +1,6 @@
+---
+randomization_platform_service_name: randomization-platform
+randomization_platform_script_path: /usr/local/bin/randomization_platform_start.sh
+randomization_platform_log_dir: /var/log/randomization_platform
+randomization_platform_log_file: "{{ randomization_platform_log_dir }}/start.log"
+randomization_platform_eval_profile: default

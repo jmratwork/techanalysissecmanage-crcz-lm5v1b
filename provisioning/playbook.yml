@@ -52,3 +52,13 @@
       vars:
         common_bootstrap_install_docker: "{{ (ng_soar_install_method | default('deb')) == 'docker' or (ng_soar_docker_enabled | default(false) | bool) }}"
     - ng_soar
+
+- hosts: randomization_platform
+  become: true
+  roles:
+    - randomization_platform
+
+- hosts: router
+  become: true
+  roles:
+    - router_noop

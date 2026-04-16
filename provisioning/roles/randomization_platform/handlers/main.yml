@@ -1,0 +1,9 @@
+---
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart randomization platform service
+  ansible.builtin.service:
+    name: "{{ randomization_platform_service_name }}"
+    state: restarted
