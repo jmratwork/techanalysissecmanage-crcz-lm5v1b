@@ -15,6 +15,18 @@ This repository provides complete, ready‑to‑deploy instructions for CyberRan
 
 See [deployment manual](docs/deployment_manual.md) for detailed steps including VM preparation, service orchestration, teardown, and environment reset.
 
+## CI checks (equivalentes locales)
+
+Estos son los mismos comandos ejecutados por `.github/workflows/ci.yml`:
+
+```bash
+yamllint .
+ansible-lint provisioning/
+ansible-playbook --syntax-check -i provisioning/inventory.ini provisioning/playbook.yml
+PYTHONPATH=. pytest tests/ soc_alerts/tests/
+```
+
+
 ## Estado de aprovisionamiento por host (playbook canónico)
 
 El aprovisionamiento canónico de Subcaso 1b vive en `provisioning/playbook.yml`.

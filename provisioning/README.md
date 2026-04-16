@@ -127,6 +127,18 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit 'training_platform,trainee_workstation'
 ```
 
+
+## Comandos de validación/CI (equivalentes locales)
+
+El workflow de CI ejecuta estos checks sobre este repositorio:
+
+```bash
+yamllint .
+ansible-lint provisioning/
+ansible-playbook --syntax-check -i provisioning/inventory.ini provisioning/playbook.yml
+PYTHONPATH=. pytest tests/ soc_alerts/tests/
+```
+
 ## Compatibilidad
 
 Los wrappers de compatibilidad que importan el flujo canónico son:
