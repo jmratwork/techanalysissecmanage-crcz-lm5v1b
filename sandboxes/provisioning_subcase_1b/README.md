@@ -10,6 +10,9 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 For compatibility, `site.yml` in this folder is only a wrapper (`import_playbook`) that delegates to
 `../../provisioning/playbook.yml`.
 
+> Regla de operación: este árbol no es un segundo entrypoint de provisioning.
+> Úsalo solo para empaquetado/compatibilidad; toda lógica funcional vive en `provisioning/`.
+
 ## Package locations
 
 | Component | Deb package URL | Container image |
