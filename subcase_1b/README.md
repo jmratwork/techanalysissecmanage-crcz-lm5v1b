@@ -2,6 +2,15 @@
 
 This scenario provides self-paced courses for penetration testing and vulnerability assessments. The Training Instructor uses the training platform to create new courses and configure Cyber Range scenarios that emulate CYNET's network infrastructure. Trainees execute semi-automated penetration test assessments to discover potential vulnerabilities and attack entry points.
 
+## Canonical host naming
+
+For Subcase 1b documentation and provisioning commands, use only canonical names:
+`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`.
+
+- Active provisioning roles: all previous hosts except `router`.
+- `router` is an explicit no-op host (`router_noop`) in the canonical playbook.
+- `soc_server` is legacy/isolated and must not be used for Subcase 1b provisioning.
+
 ## Simplified Workflow
 
 ```mermaid
