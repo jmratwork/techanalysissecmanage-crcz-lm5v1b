@@ -15,6 +15,26 @@ This repository provides complete, ready‑to‑deploy instructions for CyberRan
 
 See [deployment manual](docs/deployment_manual.md) for detailed steps including VM preparation, service orchestration, teardown, and environment reset.
 
+## Fuente canónica única (Subcaso 1b)
+
+Para evitar derivaciones entre árboles legacy y wrappers, este repositorio define una única fuente canónica de aprovisionamiento:
+
+- **Playbook canónico:** `provisioning/playbook.yml`
+- **Inventario canónico:** `provisioning/inventory.ini`
+
+Wrappers soportados (solo compatibilidad de rutas):
+
+- `sandboxes/provisioning_subcase_1b/site.yml`
+- `subcase_1b/ansible/playbook.yml`
+
+Regla operativa: ejecuta aprovisionamiento manual únicamente con:
+
+```bash
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
+```
+
+No mantengas ni introduzcas lógica de aprovisionamiento paralela en `sandboxes/` o en `subcase_1b/ansible/roles/**`.
+
 ## CI checks (equivalentes locales)
 
 Estos son los mismos comandos ejecutados por `.github/workflows/ci.yml`:

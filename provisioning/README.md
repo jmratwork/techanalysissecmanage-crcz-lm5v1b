@@ -3,6 +3,16 @@
 `provisioning/playbook.yml` es el **entrypoint canónico** del aprovisionamiento de Subcaso 1b.
 El inventario canónico es `provisioning/inventory.ini`.
 
+## Regla de precedencia (canónico vs wrappers)
+
+Orden de precedencia para Subcaso 1b:
+
+1. `provisioning/playbook.yml` + `provisioning/inventory.ini` (**canónico**).
+2. `sandboxes/provisioning_subcase_1b/site.yml` (**wrapper** por compatibilidad).
+3. `subcase_1b/ansible/playbook.yml` (**wrapper** por compatibilidad legacy).
+
+Los wrappers no deben contener lógica funcional alternativa ni divergente.
+
 ## Flujo recomendado (docker mode)
 
 Ejecuta siempre desde la raíz del repositorio y sigue este orden:

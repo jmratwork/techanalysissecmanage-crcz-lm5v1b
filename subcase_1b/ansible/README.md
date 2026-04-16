@@ -16,6 +16,7 @@ Este directorio se mantiene solo por compatibilidad de rutas heredadas.
 - **Inventario canónico:** `provisioning/inventory.ini`
 - **Estado de `subcase_1b/ansible/roles/**`:** legado / **no canónico**.
 - **Regla de mantenimiento:** no editar `subcase_1b/ansible/roles/**` para cambios funcionales; cualquier cambio de comportamiento debe implementarse en `provisioning/roles/**` y consumirse desde el entrypoint canónico.
+- **Regla operativa:** no ejecutar aprovisionamiento diario con este árbol; usar siempre el comando canónico desde la raíz.
 
 Comando recomendado (desde la raíz del repo):
 
