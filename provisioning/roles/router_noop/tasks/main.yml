@@ -1,0 +1,11 @@
+---
+- name: Assert router provisioning is intentionally disabled in this repository
+  ansible.builtin.assert:
+    that:
+      - true
+    success_msg: "Router: sin provisión activa en este repositorio."
+    quiet: true
+
+- name: Explain router no-op decision
+  ansible.builtin.debug:
+    msg: "Router: sin provisión activa en este repositorio. Se mantiene rol no-op explícito para evitar silencio ambiguo."

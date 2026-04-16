@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+LOG_FILE="${LOG_FILE:-{{ randomization_platform_log_file }}}"
+EVAL_PROFILE="${EVAL_PROFILE:-{{ randomization_platform_eval_profile }}}"
+
+mkdir -p "$(dirname "$LOG_FILE")"
+echo "$(date) Randomization Evaluation Platform started with profile $EVAL_PROFILE" >> "$LOG_FILE"
