@@ -1,22 +1,59 @@
 ---
+- name: Validate randomization platform role inputs
+  ansible.builtin.assert:
+    that:
+      - randomization_platform_service_name | length > 0
+      - randomization_platform_script_path | length > 0
+      - randomization_platform_log_dir | length > 0
+      - randomization_platform_user | length > 0
+    fail_msg: >-
+      randomization_platform role variables are invalid. Check service name,
+      script path, log directory and user values.
+
+- name: Assert supported OS family for package installation
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == 'Debian'
+    fail_msg: >-
+      randomization_platform role currently supports Debian-family systems
+      (including Debian 11 and Kali).
+
 - name: Install minimal randomization platform runtime dependencies
   ansible.builtin.apt:
-    name:
-      - bash
+    name: "{{ randomization_platform_runtime_packages }}"
     state: present
-    update_cache: yes
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Check randomization platform source script exists on controller
+  ansible.builtin.stat:
+    path: "{{ randomization_platform_script_src }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: randomization_platform_script_src_stat
+
+- name: Fail with useful message when source script is missing
+  ansible.builtin.assert:
+    that:
+      - randomization_platform_script_src_stat.stat.exists
+      - randomization_platform_script_src_stat.stat.isreg
+    fail_msg: >-
+      Randomization platform script was not found at
+      '{{ randomization_platform_script_src }}'.
+      Provide a valid script artifact path with randomization_platform_script_src.
 
 - name: Ensure randomization platform log directory exists
   ansible.builtin.file:
     path: "{{ randomization_platform_log_dir }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ randomization_platform_user }}"
+    group: "{{ randomization_platform_user }}"
     mode: '0755'
 
-- name: Deploy randomization platform start script artifact
-  ansible.builtin.template:
-    src: randomization_platform_start.sh.j2
+- name: Deploy randomization platform script artifact
+  ansible.builtin.copy:
+    src: "{{ randomization_platform_script_src }}"
     dest: "{{ randomization_platform_script_path }}"
     owner: root
     group: root
@@ -30,12 +67,25 @@
     owner: root
     group: root
     mode: '0644'
+  when: randomization_platform_manage_systemd
   notify:
     - reload systemd daemon
     - restart randomization platform service
 
-- name: Ensure randomization platform service is enabled and started
-  ansible.builtin.service:
+- name: Ensure randomization platform service is in desired state
+  ansible.builtin.systemd:
     name: "{{ randomization_platform_service_name }}"
-    state: started
-    enabled: yes
+    enabled: "{{ randomization_platform_service_enabled }}"
+    state: "{{ randomization_platform_service_state }}"
+  when: randomization_platform_manage_systemd
+
+- name: Run randomization platform script in controlled mode
+  ansible.builtin.command:
+    cmd: "{{ randomization_platform_script_path }}"
+  environment:
+    LOG_FILE: "{{ randomization_platform_log_file }}"
+    EVAL_PROFILE: "{{ randomization_platform_eval_profile }}"
+  when:
+    - not randomization_platform_manage_systemd
+    - randomization_platform_run_controlled_script
+  changed_when: false

@@ -1,6 +1,23 @@
 ---
 randomization_platform_service_name: randomization-platform
+randomization_platform_user: root
+
+# Source artifact in the repository (controller-side)
+randomization_platform_script_src: "{{ playbook_dir }}/../subcase_1b/scripts/randomization_platform_start.sh"
+# Destination on the managed host
 randomization_platform_script_path: /usr/local/bin/randomization_platform_start.sh
+
 randomization_platform_log_dir: /var/log/randomization_platform
 randomization_platform_log_file: "{{ randomization_platform_log_dir }}/start.log"
 randomization_platform_eval_profile: default
+
+# Feature flags
+randomization_platform_manage_systemd: true
+randomization_platform_service_enabled: true
+randomization_platform_service_state: started
+randomization_platform_run_controlled_script: false
+
+# Base runtime packages required by the current script implementation
+randomization_platform_runtime_packages:
+  - bash
+  - coreutils

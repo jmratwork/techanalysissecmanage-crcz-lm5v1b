@@ -1,9 +1,12 @@
 [Unit]
 Description=Randomization Platform bootstrap service
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=oneshot
+User={{ randomization_platform_user }}
+Group={{ randomization_platform_user }}
 Environment=LOG_FILE={{ randomization_platform_log_file }}
 Environment=EVAL_PROFILE={{ randomization_platform_eval_profile }}
 ExecStart={{ randomization_platform_script_path }}
