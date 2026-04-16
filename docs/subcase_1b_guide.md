@@ -37,17 +37,18 @@ flowchart TD
 
 ## Instructor Setup
 
-1. **Install dependencies**
+1. **Provision training platform (canonical flow)**
    ```bash
-   pip install -r subcase_1b/training_platform/requirements.txt
+   ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
    ```
-2. **Create the Course**
+   This is the primary operational path and configures venv, systemd, nginx and environment file through the `training_platform` role.
+2. **Create the Course (compatibility helper)**
    ```bash
    export INSTRUCTOR_PASSWORD='S3cureP@ss'
    sudo PASSWORD="$INSTRUCTOR_PASSWORD" COURSE_NAME=pentest-101 subcase_1b/scripts/training_platform_start.sh
    ```
-   Starts the Flask service, registers the instructor, and creates the course via the REST API. The script
-   refuses to run if `PASSWORD` remains at the insecure default value.
+   This script is maintained as a compatibility/lab helper. It can bootstrap a local run, register the instructor,
+   and create the course via REST API. The script refuses to run if `PASSWORD` remains at the insecure default value.
 
    To invite a learner:
    ```bash
