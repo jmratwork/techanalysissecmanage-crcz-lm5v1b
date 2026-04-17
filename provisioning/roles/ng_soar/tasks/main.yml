@@ -12,17 +12,17 @@
           - ng_soar_install_method != 'docker' or ng_soar_docker_enabled | bool
           - ng_soar_install_method != 'docker' or ng_soar_docker_project_src | length > 0
         fail_msg: >-
-          Configuración inválida para NG-SOAR. Si usarás deb, define ng_soar_repo_url, ng_soar_package_path y
-          ng_soar_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
-          Si no usarás deb, cambia ng_soar_install_method a "docker".
+          Invalid configuration for NG-SOAR. If you will use deb, define ng_soar_repo_url, ng_soar_package_path and
+          ng_soar_package_checksum in provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars).
+          If you will not use deb, change ng_soar_install_method to "docker".
 
     - name: Assert supported OS family for NG-SOAR deb flow
       ansible.builtin.assert:
         that:
           - ansible_os_family == 'Debian'
         fail_msg: >-
-          NG-SOAR con install_method=deb requiere hosts Debian-family (apt/deb).
-          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+          NG-SOAR with install_method=deb requires Debian-family hosts (apt/deb).
+          Detected host: {{ ansible_os_family }} / {{ ansible_distribution }}.
       when: ng_soar_install_method == 'deb'
 
     - name: NG-SOAR deb installation flow
@@ -99,8 +99,8 @@
               - ng_soar_docker_image != '__REQUIRED_DOCKER_IMAGE__'
               - ng_soar_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              Faltan variables Docker de NG-SOAR. Define ng_soar_docker_image y ng_soar_docker_tag con valores reales en
-              provisioning/group_vars/subcase_1b.yml (o en group_vars/host_vars de tu inventario), y verifica
+              Docker variables are missing for NG-SOAR. Define ng_soar_docker_image and ng_soar_docker_tag with real values in
+              provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars), and verify
               ng_soar_docker_project_src/ng_soar_docker_networks/ng_soar_docker_wait_for.
 
         - name: Ensure NG-SOAR Docker project directory exists

@@ -12,17 +12,17 @@
           - cicms_install_method != 'docker' or cicms_docker_enabled | bool
           - cicms_install_method != 'docker' or cicms_docker_project_src | length > 0
         fail_msg: >-
-          Configuración inválida para CICMS. Si usarás deb, define cicms_repo_url, cicms_package_path y
-          cicms_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
-          Si no usarás deb, cambia cicms_install_method a "docker".
+          Invalid configuration for CICMS. If you will use deb, define cicms_repo_url, cicms_package_path and
+          cicms_package_checksum in provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars).
+          If you will not use deb, change cicms_install_method to "docker".
 
     - name: Assert supported OS family for CICMS deb flow
       ansible.builtin.assert:
         that:
           - ansible_os_family == 'Debian'
         fail_msg: >-
-          CICMS con install_method=deb requiere hosts Debian-family (apt/deb).
-          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+          CICMS with install_method=deb requires Debian-family hosts (apt/deb).
+          Detected host: {{ ansible_os_family }} / {{ ansible_distribution }}.
       when: cicms_install_method == 'deb'
 
     - name: CICMS deb installation flow
@@ -90,8 +90,8 @@
               - cicms_docker_image != '__REQUIRED_DOCKER_IMAGE__'
               - cicms_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              Faltan variables Docker de CICMS. Define cicms_docker_image y cicms_docker_tag con valores reales en
-              provisioning/group_vars/subcase_1b.yml (o en group_vars/host_vars de tu inventario), y verifica
+              Docker variables are missing for CICMS. Define cicms_docker_image and cicms_docker_tag with real values in
+              provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars), and verify
               cicms_docker_project_src/cicms_docker_networks/cicms_docker_wait_for.
 
         - name: Ensure CICMS Docker project directory exists
