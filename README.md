@@ -17,6 +17,9 @@ See [deployment manual](docs/deployment_manual.md) for detailed steps including 
 
 ## Fuente canónica única (Subcaso 1b)
 
+Contrato formal de referencia: [`docs/canonical_provisioning_contract.md`](docs/canonical_provisioning_contract.md).
+
+
 Para evitar derivaciones entre árboles legacy y wrappers, este repositorio define una única fuente canónica de aprovisionamiento:
 
 - **Playbook canónico:** `provisioning/playbook.yml`

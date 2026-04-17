@@ -5,6 +5,9 @@ El inventario canónico es `provisioning/inventory.ini`.
 
 ## Regla de precedencia (canónico vs wrappers)
 
+Contrato formal de referencia del repositorio: [`docs/canonical_provisioning_contract.md`](../docs/canonical_provisioning_contract.md).
+
+
 Orden de precedencia para Subcaso 1b:
 
 1. `provisioning/playbook.yml` + `provisioning/inventory.ini` (**canónico**).
