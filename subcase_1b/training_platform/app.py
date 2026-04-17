@@ -10,6 +10,7 @@ from flask import Flask, request, jsonify
 import phishing_quiz
 from open_edx_client import OpenEdXClient
 from results_service import append_result, aggregate_results
+from security import hash_password, verify_password
 from storage import (
     TRAINING_DB_PATH,
     create_session,
@@ -139,7 +140,11 @@ def register():
         return jsonify({'error': 'username and password required'}), 400
     if get_user(username):
         return jsonify({'error': 'user exists'}), 400
-    create_user(username, password, role)
+    try:
+        password_hash = hash_password(password)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+    create_user(username, password_hash, role)
     return jsonify({'status': 'registered'})
 
 
@@ -149,7 +154,7 @@ def login():
     username = data.get('username')
     password = data.get('password')
     user = get_user(username)
-    if not user or user['password'] != password:
+    if not user or not verify_password(password, user['password']):
         return jsonify({'error': 'invalid credentials'}), 403
     token = str(uuid.uuid4())
     create_session(token, username)
