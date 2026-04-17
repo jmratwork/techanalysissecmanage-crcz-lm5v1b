@@ -15,9 +15,10 @@ from storage import (
     TRAINING_DB_PATH,
     create_session,
     create_user,
+    get_session_by_token,
     get_user,
-    get_username_by_token,
     init_schema,
+    revoke_session,
 )
 
 app = Flask(__name__)
@@ -62,6 +63,8 @@ with open(OPENVAS_TEMPLATE, 'r', encoding='utf-8') as fh:
     OPENVAS_XML = fh.read()
 OPENVAS_XML = OPENVAS_XML.replace('KYPO_SUBNET', KYPO_SUBNET)
 OPENVAS_XML = OPENVAS_XML.replace('OPENVAS_TARGET_HOST', OPENVAS_TARGET_HOST)
+
+SESSION_TTL_SECONDS = int(os.getenv('SESSION_TTL_SECONDS', '3600'))
 
 
 COMMANDS = {
@@ -120,14 +123,40 @@ def _validate_tool(command):
 
 
 def authenticate(token):
-    username = get_username_by_token(token)
-    if not username:
+    if not token:
         return None
-    return get_user(username)
+
+    session = get_session_by_token(token)
+    if not session:
+        app.logger.warning('AUDIT auth_failed reason=missing_session token=%s', token)
+        return None
+
+    now = time.time()
+    if session.get('revoked_at') is not None:
+        app.logger.warning(
+            'AUDIT auth_failed reason=revoked token=%s username=%s revoked_at=%s',
+            token,
+            session.get('username'),
+            session.get('revoked_at'),
+        )
+        return None
+
+    if session.get('expires_at') is not None and now >= session['expires_at']:
+        revoke_session(token, revoked_at=now)
+        app.logger.warning(
+            'AUDIT auth_failed reason=expired token=%s username=%s expired_at=%s',
+            token,
+            session.get('username'),
+            session.get('expires_at'),
+        )
+        return None
+
+    return get_user(session['username'])
 
 
 def token_username(token):
-    return get_username_by_token(token)
+    session = get_session_by_token(token)
+    return session['username'] if session else None
 
 
 @app.route('/register', methods=['POST'])
@@ -157,8 +186,26 @@ def login():
     if not user or not verify_password(password, user['password']):
         return jsonify({'error': 'invalid credentials'}), 403
     token = str(uuid.uuid4())
-    create_session(token, username)
+    issued_at = time.time()
+    expires_at = issued_at + SESSION_TTL_SECONDS
+    create_session(token, username, issued_at, expires_at)
     return jsonify({'token': token})
+
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    data = request.get_json(force=True)
+    token = data.get('token')
+    if not token:
+        return jsonify({'error': 'token required'}), 400
+
+    user = authenticate(token)
+    if not user:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    revoke_session(token, revoked_at=time.time())
+    app.logger.info('AUDIT logout_success token=%s username=%s', token, user['username'])
+    return jsonify({'status': 'logged_out'})
 
 
 @app.route('/courses', methods=['POST'])
