@@ -136,3 +136,45 @@ def test_soc_server_not_present_in_canonical_inventory_or_playbook() -> None:
 
     assert "soc_server" not in inventory_groups
     assert "soc_server" not in play_hosts
+
+
+def test_topology_name_fields_and_network_ids_do_not_use_underscores() -> None:
+    lines = TOPOLOGY_FILE.read_text(encoding="utf-8").splitlines()
+    invalid_entries: list[tuple[str, str]] = []
+    in_networks_section = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        if re.match(r"^networks:\s*$", stripped):
+            in_networks_section = True
+            continue
+        if in_networks_section and re.match(r"^[A-Za-z0-9_]+:\s*$", stripped):
+            in_networks_section = False
+
+        network_value_match = re.match(r"^-?\s*network:\s*([A-Za-z0-9_-]+)\s*$", stripped)
+        if network_value_match:
+            network_name = network_value_match.group(1)
+            if "_" in network_name:
+                invalid_entries.append(("network reference", network_name))
+
+        service_name_match = re.match(r"^-?\s*name:\s*([A-Za-z0-9_-]+)\s*$", stripped)
+        if service_name_match:
+            name_value = service_name_match.group(1)
+            if "_" in name_value:
+                invalid_entries.append(("name field", name_value))
+
+        network_key_match = re.match(r"^\s{2}([A-Za-z0-9_-]+):\s*$", line) if in_networks_section else None
+        if network_key_match and in_networks_section:
+            network_key = network_key_match.group(1)
+            if "_" in network_key:
+                invalid_entries.append(("network id", network_key))
+
+    assert not invalid_entries, (
+        "Topology contains underscore(s) in identifiers that must be hyphenated. "
+        "Offending entries: "
+        + ", ".join(
+            f"'{value}' ({kind})"
+            for kind, value in sorted(set(invalid_entries), key=lambda item: (item[0], item[1]))
+        )
+    )
