@@ -1,6 +1,9 @@
 # CYNET Topology Overview
 
 ## Subcase 1b
+> Fuente de verdad de topología para Subcase 1b: `sandboxes/topology_subcase_1b.yaml`.
+> `topology.yml` (raíz) está deprecado y solo se conserva como puntero legacy no operativo.
+
 - Network segment `training_net` (10.10.0.0/24)
 - Virtual machines (canonical host naming):
   - **training_platform** – Debian 11
