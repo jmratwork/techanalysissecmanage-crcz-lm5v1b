@@ -11,6 +11,7 @@ PLAYBOOK_FILE = REPO_ROOT / "provisioning" / "playbook.yml"
 
 GROUP_HEADER_RE = re.compile(r"^\[([^\]]+)\]\s*$")
 HOST_PLAY_RE = re.compile(r"^-\s*hosts:\s*(\S+)\s*$")
+KYPO_NODE_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 def _extract_topology_nodes() -> set[str]:
@@ -22,6 +23,7 @@ def _extract_topology_nodes() -> set[str]:
 
     lines = TOPOLOGY_FILE.read_text(encoding="utf-8").splitlines()
     nodes: set[str] = set()
+    invalid_nodes: list[tuple[str, str]] = []
 
     current_section: str | None = None
     for line in lines:
@@ -37,9 +39,24 @@ def _extract_topology_nodes() -> set[str]:
             continue
 
         if current_section in {"hosts", "routers"}:
-            match = re.match(r"^\s{2}([A-Za-z0-9_]+):\s*$", line)
+            match = re.match(r"^\s{2}([A-Za-z0-9_-]+):\s*$", line)
             if match:
-                nodes.add(match.group(1))
+                node_name = match.group(1)
+                nodes.add(node_name)
+                if not KYPO_NODE_NAME_RE.fullmatch(node_name):
+                    invalid_nodes.append((current_section, node_name))
+
+    assert not invalid_nodes, (
+        "Invalid KYPO host/router name(s) in "
+        f"{TOPOLOGY_FILE.relative_to(REPO_ROOT)}. "
+        "Names must match ^[a-z0-9]+(?:-[a-z0-9]+)*$ "
+        "(no '_', '-' allowed). "
+        "Offending entries: "
+        + ", ".join(
+            f"'{name}' (section: {section})"
+            for section, name in sorted(invalid_nodes, key=lambda item: item[1])
+        )
+    )
 
     return nodes
 
