@@ -1,4 +1,8 @@
 ---
+# KYPO/CyberRangeCZ naming guard:
+# - Keep host/router/network identifiers in kebab-case.
+# - Keep service `name` values in kebab-case.
+# This prevents validation errors like: "Cannot set <X>.name".
 name: "subcase-1b-topology"
 hosts:
   training-platform:
