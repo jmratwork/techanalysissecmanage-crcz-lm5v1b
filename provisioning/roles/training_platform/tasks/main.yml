@@ -13,8 +13,8 @@
     that:
       - training_platform_source_mode in ['assert_present', 'sync_from_repo']
     fail_msg: >-
-      training_platform_source_mode inválido: {{ training_platform_source_mode }}.
-      Valores soportados: assert_present, sync_from_repo.
+      Invalid training_platform_source_mode: {{ training_platform_source_mode }}.
+      Supported values: assert_present, sync_from_repo.
 
 - name: Check training platform source directory on controller
   ansible.builtin.stat:
@@ -31,9 +31,9 @@
       - training_platform_source_dir_stat.stat.exists
       - training_platform_source_dir_stat.stat.isdir
     fail_msg: >-
-      training_platform_source_dir no existe o no es un directorio en controller:
+      training_platform_source_dir does not exist or is not a directory on the controller:
       {{ training_platform_source_dir }}.
-      Corrige la ruta o usa training_platform_source_mode=assert_present.
+      Fix the path or use training_platform_source_mode=assert_present.
   when: training_platform_source_mode == 'sync_from_repo'
 
 - name: Ensure training platform application directory exists on host
@@ -69,8 +69,8 @@
       - training_platform_requirements.stat.isreg
     fail_msg: >-
       requirements.txt no existe en {{ training_platform_requirements_file }}.
-      Si el código no existe en el host remoto, usa
-      training_platform_source_mode=sync_from_repo o ajusta training_platform_app_dir.
+      If the code does not exist on the remote host, use
+      training_platform_source_mode=sync_from_repo or adjust training_platform_app_dir.
 
 - name: Check training platform application entrypoint
   ansible.builtin.stat:
@@ -84,8 +84,8 @@
       - training_platform_app.stat.isreg
     fail_msg: >-
       app.py no existe en {{ training_platform_entrypoint }}.
-      Si el código no existe en el host remoto, usa
-      training_platform_source_mode=sync_from_repo o ajusta training_platform_app_dir.
+      If the code does not exist on the remote host, use
+      training_platform_source_mode=sync_from_repo or adjust training_platform_app_dir.
 
 - name: Assert Open edX integration variables
   ansible.builtin.assert:
@@ -93,7 +93,7 @@
       - training_platform_openedx_url | length > 0
       - (training_platform_openedx_api_token | length > 0) or (training_platform_openedx_session_cookie | length > 0)
     fail_msg: >-
-      Open edX está habilitado pero faltan variables críticas.
+      Open edX is enabled but critical variables are missing.
       Requiere training_platform_openedx_url y al menos una credencial
       (training_platform_openedx_api_token o training_platform_openedx_session_cookie).
   when: training_platform_openedx_enabled | bool
@@ -104,7 +104,7 @@
       - training_platform_misp_url | length > 0
       - training_platform_misp_api_key | length > 0
     fail_msg: >-
-      MISP está habilitado pero faltan variables críticas.
+      MISP is enabled but critical variables are missing.
       Requiere training_platform_misp_url y training_platform_misp_api_key.
   when: training_platform_misp_enabled | bool
 
@@ -113,7 +113,7 @@
     that:
       - training_platform_kypo_url | length > 0
     fail_msg: >-
-      KYPO está habilitado pero falta training_platform_kypo_url.
+      KYPO is enabled but training_platform_kypo_url is missing.
   when: training_platform_kypo_enabled | bool
 
 - name: Assert LTI integration variables
@@ -123,7 +123,7 @@
       - training_platform_lti_client_id | length > 0
       - training_platform_lti_deployment_id | length > 0
     fail_msg: >-
-      LTI está habilitado pero faltan variables críticas.
+      LTI is enabled but critical variables are missing.
       Requiere training_platform_lti_tool_private_key,
       training_platform_lti_client_id y training_platform_lti_deployment_id.
   when: training_platform_lti_enabled | bool

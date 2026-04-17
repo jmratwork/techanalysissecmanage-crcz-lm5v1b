@@ -2,12 +2,12 @@
 
 ## Contrato global de dependencias
 
-La fuente de verdad para dependencias Python está en la raíz del repositorio:
+The source of truth for Python dependencies is in the root of the repository:
 
 - `requirements.txt`: dependencias de runtime pinneadas.
 - `requirements-dev.txt`: contrato para desarrollo/tests (incluye runtime + tooling de test).
 
-## Instalación única (todos los componentes Python)
+## Single installation (all Python components)
 
 ```bash
 python -m venv .venv
@@ -16,6 +16,6 @@ python -m pip install --upgrade pip
 pip install -r requirements-dev.txt
 ```
 
-## Alineación de subcomponentes
+## Subcomponent alignment
 
-`subcase_1b/training_platform/requirements.txt` no declara versiones propias: reexporta `../../requirements.txt` para evitar drift y mantener una sola versión efectiva por paquete.
+`subcase_1b/training_platform/requirements.txt` does not declare its own versions: it re-exports `../../requirements.txt` to avoid drift and maintain a single effective version per package.

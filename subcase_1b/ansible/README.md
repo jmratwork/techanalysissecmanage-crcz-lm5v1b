@@ -1,25 +1,25 @@
 # Ansible compatibility wrapper for Subcase 1b
 
-Este directorio ya no es una implementación operativa independiente.
-Se conserva únicamente para compatibilidad de rutas legacy.
+This directory is no longer a stand-alone operational implementation.
+It is retained only for legacy route compatibility.
 
-## Compatibilidad y entrypoint canónico
+## Compatibility and canonical entrypoint
 
-Este directorio se mantiene solo por compatibilidad de rutas heredadas.
+This directory is kept only for legacy path compatibility.
 
-- **Entrypoint canónico Subcaso 1b:** `provisioning/playbook.yml`
-- **Inventario canónico:** `provisioning/inventory.ini`
-- **Estado de `subcase_1b/ansible/roles/**`:** snapshot legado / **no canónico** / fuera del runtime principal.
-- **Regla de mantenimiento:** no editar `subcase_1b/ansible/roles/**` para cambios funcionales; cualquier cambio de comportamiento debe implementarse en `provisioning/roles/**` y consumirse desde el entrypoint canónico.
-- **Regla operativa:** no ejecutar aprovisionamiento diario con este árbol; usar siempre el comando canónico desde la raíz.
-- **Referencia explícita:** ver `subcase_1b/ansible/roles/README.md` para la política de uso de los roles legacy.
+- **Canonical Entrypoint Subcase 1b:** `provisioning/playbook.yml`
+- **Canonical inventory:** `provisioning/inventory.ini`
+- **State of `subcase_1b/ansible/roles/**`:** legacy snapshot / **non-canonical** / outside the main runtime.
+- **Maintenance rule:** do not edit `subcase_1b/ansible/roles/**` for functional changes; any behavior changes should be implemented in `provisioning/roles/**` and consumed from the canonical entrypoint.
+- **Operating rule:** do not run daily provisioning with this tree; always use the canonical command from the root.
+- **Explicit reference:** see `subcase_1b/ansible/roles/README.md` for the policy on using legacy roles.
 
-Comando recomendado (desde la raíz del repo):
+Recommended command (from repo root):
 
 ```bash
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
 
-`subcase_1b/ansible/playbook.yml` ahora es un wrapper (`import_playbook`) hacia el playbook canónico para evitar divergencias entre árboles de roles/playbooks.
+`subcase_1b/ansible/playbook.yml` is now a wrapper (`import_playbook`) towards the canonical playbook to avoid divergences between role trees/playbooks.
 
-Opcional recomendado: reemplazar contenido legacy por wrappers o eliminarlo si no se usa en runtime de KYPO, dejando solo `playbook.yml` wrapper en este árbol de compatibilidad.
+Optional recommended: replace legacy content with wrappers or remove it if not used in KYPO runtime, leaving only `playbook.yml` wrapper in this compatibility tree.

@@ -17,12 +17,12 @@ if [ -n "${VALIDATOR}" ] && [ -f "${VALIDATOR}" ]; then
 fi
 
 if ! command -v git >/dev/null 2>&1; then
-    echo "git no está disponible en la ruta" >&2
+    echo "git is not available in path" >&2
     exit 1
 fi
 
 if git -C "${REPO_ROOT}" diff --quiet -- "${PLAYBOOK_DIR}"; then
-    echo "No hay cambios en los perfiles de automatización para versionar"
+    echo "No changes to automation profiles to version"
     exit 0
 fi
 

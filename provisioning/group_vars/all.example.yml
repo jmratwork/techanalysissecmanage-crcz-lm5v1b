@@ -1,7 +1,7 @@
 # Copia este archivo a provisioning/group_vars/all.yml antes de ejecutar en docker mode.
-# Incluye aquí valores globales que deban compartirse entre grupos/hosts.
+# Include global values ​​here that must be shared between groups/hosts.
 
-# Ejemplo de variables de integración externa (placeholders ilustrativos):
+# Example of external integration variables (illustrative placeholders):
 OPENEDX_URL: "https://openedx.example.local"
 OPENEDX_API_TOKEN: "__REQUIRED_OPENEDX_API_TOKEN__"
 MISP_URL: "https://misp.example.local"

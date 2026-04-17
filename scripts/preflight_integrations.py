@@ -171,7 +171,7 @@ def resolve_default_var_files() -> List[Path]:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Valida variables obligatorias de docs/env_variables.md y detecta "
+            "Validates required variables from docs/env_variables.md and detects "
             "placeholders __REQUIRED_*__."
         )
     )
@@ -190,7 +190,7 @@ def main() -> int:
 
     env_doc = Path(args.env_doc)
     if not env_doc.exists():
-        print(f"ERROR: No se encontró el archivo de variables: {env_doc}")
+        print(f"ERROR: Variable file not found: {env_doc}")
         return 2
 
     var_descriptions = parse_env_doc(env_doc)
@@ -219,15 +219,15 @@ def main() -> int:
     global_missing_set: set[str] = set()
     for rule in COMPONENT_RULES:
         ready, missing = component_status(rule, effective_values)
-        status_label = "LISTO" if ready else "NO LISTO"
+        status_label = "READY" if ready else "NOT READY"
         print(f"[{status_label}] {rule.name}")
         if ready:
-            print("  - Integración preparada para despliegue.")
+            print(" - Integration ready for deployment.")
         else:
             global_missing_set.update(missing)
             for missing_item in missing:
                 print(
-                    "  - Acción: define una variable válida para "
+                    " - Action: define a valid variable for "
                     f"{missing_item} (shell o group_vars) y vuelve a ejecutar el preflight."
                 )
         print()
@@ -236,21 +236,21 @@ def main() -> int:
         print("Placeholders detectados (__REQUIRED_*__):")
         for var in sorted(placeholders):
             print(f"  - {var} = {placeholders[var]}")
-        print("Acción: reemplaza estos placeholders por valores reales antes de desplegar.")
+        print("Action: Replace these placeholders with real values ​​before displaying.")
         print()
 
     if global_missing_set:
-        print("Resultado global: NO LISTO")
+        print("Global result: NOT READY")
         print("Variables obligatorias pendientes:")
         for var in sorted(global_missing_set):
             print(f"  - {var}")
         return 1
 
     if placeholders:
-        print("Resultado global: NO LISTO (hay placeholders pendientes)")
+        print("Global result: NOT READY (there are pending placeholders)")
         return 1
 
-    print("Resultado global: LISTO")
+    print("Global result: READY")
     return 0
 
 

@@ -4,7 +4,7 @@
 # ================================
 # Training platform code strategy
 # ================================
-# Por defecto, el rol exige código preexistente en el host remoto:
+# By default, the role requires pre-existing code on the remote host:
 # training_platform_source_mode: assert_present
 # training_platform_app_dir: /opt/subcase_1b/training_platform
 #
@@ -15,7 +15,7 @@
 # ========================
 # Ejemplos CYNET modo deb
 # ========================
-# Descomenta y ajusta solo si usarás install_method: deb.
+# Uncomment and adjust only if you will use install_method: deb.
 # bips_install_method: deb
 # bips_repo_url: "https://packages.internal.example.com"
 # bips_package_path: "/bips/bips-agent.deb"

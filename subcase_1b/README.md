@@ -15,9 +15,9 @@ For Subcase 1b documentation and provisioning commands, use only canonical names
 
 ```mermaid
 flowchart LR
-    A[Open edX inscripción] --> B[CRCZ/KYPO lab]
-    B --> C[Módulo de resultados]
-    C --> D[Actualización Open edX]
+    A[Open edX registration] --> B[CRCZ/KYPO lab]
+    B --> C[Results Module]
+    C --> D[Open edX Update]
 ```
 
 ## Canonical provisioning flow (single source of truth)

@@ -1,36 +1,36 @@
 # Provisioning Playbook
 
-`provisioning/playbook.yml` es el **entrypoint canónico** del aprovisionamiento de Subcaso 1b.
-El inventario canónico es `provisioning/inventory.ini`.
+`provisioning/playbook.yml` is the **canonical entrypoint** of Subcase 1b provisioning.
+The canonical inventory is `provisioning/inventory.ini`.
 
-## Regla de precedencia (canónico vs wrappers)
+## Precedence rule (canonical vs wrappers)
 
-Contrato formal de referencia del repositorio: [`docs/canonical_provisioning_contract.md`](../docs/canonical_provisioning_contract.md).
+Formal repository reference contract: [`docs/canonical_provisioning_contract.md`](../docs/canonical_provisioning_contract.md).
 
 
-Orden de precedencia para Subcaso 1b:
+Order of precedence for Subcase 1b:
 
-1. `provisioning/playbook.yml` + `provisioning/inventory.ini` (**canónico**).
-2. `sandboxes/provisioning_subcase_1b/site.yml` (**wrapper** por compatibilidad).
-3. `subcase_1b/ansible/playbook.yml` (**wrapper** por compatibilidad legacy).
+1. `provisioning/playbook.yml` + `provisioning/inventory.ini` (**canonical**).
+2. `sandboxes/provisioning_subcase_1b/site.yml` (**wrapper** for compatibility).
+3. `subcase_1b/ansible/playbook.yml` (**wrapper** for legacy compatibility).
 
-Los wrappers no deben contener lógica funcional alternativa ni divergente.
+Wrappers must not contain alternative or divergent functional logic.
 
 ## Flujo recomendado (docker mode)
 
-Ejecuta siempre desde la raíz del repositorio y sigue este orden:
+Always run from the root of the repository and follow this order:
 
 1. **Copiar archivos de ejemplo a archivos reales**:
    ```bash
    cp provisioning/group_vars/all.example.yml provisioning/group_vars/all.yml
    cp provisioning/group_vars/subcase_1b.example.yml provisioning/group_vars/subcase_1b.yml
    ```
-2. **Rellenar variables obligatorias** en `all.yml` y `subcase_1b.yml` (imágenes, tags, credenciales y demás placeholders `__REQUIRED_*__`).
-3. **Preflight obligatorio de integraciones externas**:
+2. **Fill required variables** in `all.yml` and `subcase_1b.yml` (images, tags, credentials and other `__REQUIRED_*__` placeholders).
+3. **Mandatory external integrations preflight**:
    ```bash
    python scripts/preflight_integrations.py
    ```
-   Este paso valida variables obligatorias definidas en `docs/env_variables.md`, detecta placeholders `__REQUIRED_*__` y debe devolver `LISTO` antes del despliegue.
+   This step validates required variables defined in `docs/env_variables.md`, detects `__REQUIRED_*__` placeholders, and must return `READY` before deployment.
 4. **Ejecutar el playbook**:
    ```bash
    ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
@@ -38,11 +38,11 @@ Ejecuta siempre desde la raíz del repositorio y sigue este orden:
 
 > Importante: antes de ejecutar en docker mode, deben existir los archivos reales `provisioning/group_vars/all.yml` y `provisioning/group_vars/subcase_1b.yml`.
 
-### Coherencia explícita: topología ↔ inventario ↔ playbook
+### Explicit consistency: topology ↔ inventory ↔ playbook
 
-Referencia de topología para Subcaso 1b: `sandboxes/topology_subcase_1b.yaml`.
+Topology reference for Subcase 1b: `sandboxes/topology_subcase_1b.yaml`.
 
-| Host canónico | IP en topología (`sandboxes/topology_subcase_1b.yaml`) | Grupo en `provisioning/inventory.ini` | Rol aplicado en `provisioning/playbook.yml` |
+| Canonical Host | IP in topology (`sandboxes/topology_subcase_1b.yaml`) | Group in `provisioning/inventory.ini` | Role applied in `provisioning/playbook.yml` |
 |---|---|---|---|
 | `training_platform` | `10.10.0.2` | `training_platform` | `training_platform` |
 | `trainee_workstation` | `10.10.0.3` | `trainee_workstation` | `trainee_workstation` |
@@ -52,20 +52,20 @@ Referencia de topología para Subcaso 1b: `sandboxes/topology_subcase_1b.yaml`.
 | `ng_siem` | `10.10.0.7` | `ng_siem` | `common_bootstrap` + `ng_siem` |
 | `cicms` | `10.10.0.8` | `cicms` | `common_bootstrap` + `cicms` |
 | `ng_soar` | `10.10.0.9` | `ng_soar` | `common_bootstrap` + `ng_soar` |
-| `router` | `10.10.0.1` | `router` | `router_noop` (no-op explícito, decisión final fuera de alcance) |
+| `router` | `10.10.0.1` | `router` | `router_noop` ​​(explicit no-op, final decision out of scope) |
 
 Notas de coherencia:
-- `inventory.ini` usa `ansible_host=<hostname>` (resolución por nombre), por lo que los valores IP de la topología no se duplican en el inventario canónico.
-- `soc_server` no existe en la topología ni en el inventario canónico de Subcaso 1b.
+- `inventory.ini` uses `ansible_host=<hostname>` (resolution by name), so topology IP values ​​are not duplicated in the canonical inventory.
+- `soc_server` does not exist in the topology or canonical inventory of Subcase 1b.
 
-#### Contrato de coherencia verificable (fuente de verdad)
+#### Verifiable coherence contract (source of truth)
 
-Para considerar el estado **coherente** entre topología, inventario y playbook canónico, deben cumplirse simultáneamente estas reglas:
+To consider the state **consistent** between topology, inventory and canonical playbook, these rules must be met simultaneously:
 
-1. Cada host declarado en `sandboxes/topology_subcase_1b.yaml` (`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`) existe como host/grupo canónico en `provisioning/inventory.ini`.
-2. Cada grupo canónico de `provisioning/inventory.ini` tiene exactamente un bloque `hosts:` correspondiente en `provisioning/playbook.yml` (con `router` apuntando a `router_noop`).
-3. El grupo agregado `subcase_1b:children` contiene solo grupos canónicos de Subcaso 1b (sin aliases legacy ni grupos ficticios como `soc_server`).
-4. Cualquier cambio de naming o de asignación de roles debe actualizar **en la misma entrega** esta tabla de coherencia y la documentación principal.
+1. Every host declared in `sandboxes/topology_subcase_1b.yaml` (`training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`, `router`) exists as a canonical host/group in `provisioning/inventory.ini`.
+2. Each canonical group in `provisioning/inventory.ini` has exactly one corresponding `hosts:` block in `provisioning/playbook.yml` (with `router` pointing to `router_noop`).
+3. The aggregate group `subcase_1b:children` contains only canonical Subcase 1b groups (no legacy aliases or dummy groups like `soc_server`).
+4. Any change in naming or role assignment must update **in the same delivery** this consistency table and the main documentation.
 
 ### Grupos reales del inventario
 
@@ -80,14 +80,14 @@ Los grupos definidos actualmente en `provisioning/inventory.ini` son:
 - `cicms`
 - `ng_soar`
 - `router`
-- `subcase_1b` (grupo padre vía `:children`)
+- `subcase_1b` (parent group via `:children`)
 
-> Nota: el grupo `soc_server` está **deprecado** y no debe usarse.
-> Se mantiene únicamente como referencia legacy aislada fuera del flujo canónico.
+> Note: the `soc_server` group is **deprecated** and should not be used.
+> It is maintained only as an isolated legacy reference outside of the canonical flow.
 
-## Qué se despliega localmente vs integraciones externas
+## What is deployed locally vs external integrations
 
-### Despliegue local (dentro de la topología/lab)
+### Local deployment (within topology/lab)
 
 El playbook `provisioning/playbook.yml` aplica roles locales sobre estos grupos:
 
@@ -99,12 +99,12 @@ El playbook `provisioning/playbook.yml` aplica roles locales sobre estos grupos:
 - `cicms` → `common_bootstrap` + `cicms`
 - `ng_siem` → `common_bootstrap` + `ng_siem`
 - `ng_soar` → `common_bootstrap` + `ng_soar`
-- `randomization_platform` → `randomization_platform` (provisión mínima real: runtime bash, directorio de logs, script artefacto y servicio systemd)
-- `router` → `router_noop` (no-op explícito con `assert` + `debug`: “sin provisión activa en este repositorio”)
+- `randomization_platform` → `randomization_platform` (real minimum provision: bash runtime, logs directory, artifact script and systemd service)
+- `router` → `router_noop` ​​(explicit no-op with `assert` + `debug`: “no active provisioning in this repository”)
 
-Decisión final de alcance para `router`:
-- En este repositorio **no** se implementa aprovisionamiento de red gestionado (NAT/firewall/routing).
-- El comportamiento canónico esperado es mantener `router_noop` como contrato explícito.
+Final scoping decision for `router`:
+- In this repository, managed network provisioning (NAT/firewall/routing) is **not** implemented.
+- The expected canonical behavior is to keep `router_noop` ​​as an explicit contract.
 
 ### Estado exacto por host (activo vs no-op)
 
@@ -112,32 +112,32 @@ Decisión final de alcance para `router`:
 - **Host documentado como no-op**: `router` (rol `router_noop`).
 - **Host/grupo legacy aislado**: `soc_server` (no inventariado en `provisioning/inventory.ini`, no ejecutar `--limit soc_server`).
 
-#### Criterio de aceptación explícito (proyecto completo sin router gestionado)
+#### Explicit acceptance criteria (complete project without managed router)
 
-El estado de aprovisionamiento se considera **completo** aunque `router` permanezca en no-op cuando se cumpla simultáneamente:
+The provisioning state is considered **complete** even if `router` remains no-op when simultaneously satisfied:
 
-1. `router` está presente en topología + inventario + playbook canónicos.
-2. `router` apunta únicamente a `router_noop`.
-3. No existe automatización de red activa para `router` en `provisioning/roles/**`.
-4. La documentación canónica mantiene expresamente que el router gestionado está fuera de alcance.
+1. `router` is present in canonical topology + inventory + playbook.
+2. `router` points only to `router_noop`.
+3. There is no active network automation for `router` in `provisioning/roles/**`.
+4. The canonical documentation expressly maintains that the managed router is out of scope.
 
-### Integraciones externas (no se aprovisionan como servicios aquí)
+### External integrations (not provisioned as services here)
 
-Estas plataformas se consumen vía variables/configuración, pero **no** se levantan como parte de este playbook:
+These platforms are consumed via variables/config, but are **not** raised as part of this playbook:
 
-- **Open edX**: integración del `training_platform` para autenticación/gradebook/LTI.
-- **MISP**: integración para CTI/eventos desde scripts y servicios.
-- **IRIS**: integración para gestión de casos vía scripts (`rules_to_iris_bridge.py`, `iris_case_closed_poll.py`).
+- **Open edX**: `training_platform` integration for authentication/gradebook/LTI.
+- **MISP**: integration for CTI/events from scripts and services.
+- **IRIS**: integration for case management via scripts (`rules_to_iris_bridge.py`, `iris_case_closed_poll.py`).
 
 ## Variables requeridas y opcionales
 
-La referencia central de variables de entorno está en:
+The central reference for environment variables is at:
 
 - [`docs/env_variables.md`](../docs/env_variables.md)
 
 Resumen operativo para provisioning:
 
-### Requeridas (si habilitas integración externa)
+### Required (if you enable external integration)
 
 - Open edX: `OPENEDX_URL` y credenciales (`OPENEDX_API_TOKEN` o `OPENEDX_SESSION_COOKIE`).
 - MISP: `MISP_URL` y `MISP_API_KEY`.
@@ -151,37 +151,37 @@ Resumen operativo para provisioning:
 - Escaneo/seguridad: `OPENVAS_TARGET_HOST`.
 - TLS MISP: `MISP_CA_BUNDLE`.
 
-### Training platform: estrategia de código (ruta real vs sincronización)
+### Training platform: code strategy (actual path vs synchronization)
 
-El rol `training_platform` soporta dos modos explícitos para disponibilidad de código:
+The `training_platform` role supports two explicit modes for code availability:
 
-- `training_platform_source_mode: assert_present` (default): exige que el código ya exista en `training_platform_app_dir` en el host remoto.
-- `training_platform_source_mode: sync_from_repo`: sincroniza `subcase_1b/training_platform` desde el controller (`training_platform_source_dir`) hacia `training_platform_app_dir` antes de crear venv/systemd/nginx.
+- `training_platform_source_mode: assert_present` (default): Requires the code to already exist in `training_platform_app_dir` on the remote host.
+- `training_platform_source_mode: sync_from_repo`: synchronises `subcase_1b/training_platform` from the controller (`training_platform_source_dir`) to `training_platform_app_dir` before creating venv/systemd/nginx.
 
 Si tu entorno no monta previamente el repositorio en la VM, usa `sync_from_repo` para evitar un estado “aparentemente listo” pero no ejecutable.
 
 ## CYNET components in docker mode
 
-Los roles `bips`, `ng_siem`, `cicms` y `ng_soar` soportan `deb` y `docker` vía `*_install_method`.
+The `bips`, `ng_siem`, `cicms` and `ng_soar` roles support `deb` and `docker` via `*_install_method`.
 
-> Importante: `common_bootstrap` ya se ejecuta antes de estos roles y con `common_bootstrap_install_docker: true`, por lo que la instalación de Docker (engine, compose plugin y prerequisitos) **no debe duplicarse** dentro de cada rol.
+> Important: `common_bootstrap` is already running before these roles and with `common_bootstrap_install_docker: true`, so the Docker installation (engine, compose plugin and prerequisites) **should not be duplicated** within each role.
 
-Para Docker en Subcaso 1b, usa como base:
+For Docker in Subcase 1b, use as a base:
 
 - `provisioning/group_vars/all.example.yml`
 - `provisioning/group_vars/subcase_1b.example.yml`
 
-Y luego cópialos a sus equivalentes reales (`all.yml`, `subcase_1b.yml`) antes de ejecutar.
+And then copy them to their real equivalents (`all.yml`, `subcase_1b.yml`) before running.
 
 ## Comandos Ansible exactos (incluyendo `--limit` por grupo)
 
-### Ejecución completa
+### Complete execution
 
 ```bash
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
 
-### Ejecución por grupo
+### Execution by group
 
 ```bash
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
@@ -195,7 +195,7 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit router
 ```
 
-### Ejemplos útiles de límites compuestos
+### Useful examples of compound limits
 
 ```bash
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit subcase_1b
@@ -204,7 +204,7 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit
 ```
 
 
-## Comandos de validación/CI (equivalentes locales)
+## Validation/CI commands (local equivalents)
 
 El workflow de CI ejecuta estos checks sobre este repositorio:
 
@@ -217,24 +217,24 @@ PYTHONPATH=. pytest tests/ soc_alerts/tests/
 
 ## Compatibilidad
 
-Los wrappers de compatibilidad que importan el flujo canónico son:
+The compatibility wrappers that import the canonical stream are:
 
 - `sandboxes/provisioning_subcase_1b/site.yml`
 - `subcase_1b/ansible/playbook.yml`
 
 Ambos delegan en `provisioning/playbook.yml` para evitar desalineaciones entre playbooks/roles heredados.
-No dupliques tareas de aprovisionamiento en playbooks de sandbox o legacy.
+Do not duplicate provisioning tasks in sandbox or legacy playbooks.
 
-Además, `subcase_1b/ansible/roles/**` se considera **legado/no canónico** y su política final es **retener snapshot en solo lectura**:
+Additionally, `subcase_1b/ansible/roles/**` is considered **legacy/non-canonical** and its final policy is **retain snapshot read-only**:
 
-- No debe editarse para cambios funcionales.
-- Cualquier cambio funcional debe hacerse en `provisioning/roles/**`.
-- Se conserva como evidencia histórica/compatibilidad, pero no debe recibir nuevas features ni correcciones funcionales.
-- Cualquier evolución funcional debe implementarse en `provisioning/roles/**` y, de ser necesario, reflejarse solo como nota documental en el snapshot legacy.
+- It must not be edited for functional changes.
+- Any functional change must be made in `provisioning/roles/**`.
+- It is preserved as historical evidence/compatibility, but should not receive new features or functional corrections.
+- Any functional evolution must be implemented in `provisioning/roles/**` and, if necessary, reflected only as a documentary note in the legacy snapshot.
 
 ## Known limitations / TODOs reales
 
-- `router` permanece como host no-op intencional y definitivo en este alcance: no hay tareas de configuración de red/firewall/NAT/routing en el flujo canónico.
-- `soc_server` sigue como alias legacy aislado para documentación histórica; cualquier referencia debe migrarse a grupos canónicos.
-- `subcase_1b/ansible/roles/**` se mantiene como snapshot legacy de solo lectura; no forma parte del camino de evolución funcional.
-- Parte del despliegue depende de plataformas externas (Open edX, IRIS, MISP, KYPO), por lo que el playbook no puede validar esas integraciones sin credenciales reales.
+- `router` remains an intentional and definitive non-op host in this scope: there are no network/firewall/NAT/routing configuration tasks in the canonical flow.
+- `soc_server` remains as isolated legacy alias for historical documentation; any references should be migrated to canonical groups.
+- `subcase_1b/ansible/roles/**` is kept as a read-only legacy snapshot; It is not part of the path of functional evolution.
+- Part of the deployment depends on external platforms (Open edX, IRIS, MISP, KYPO), so the playbook cannot validate those integrations without real credentials.
