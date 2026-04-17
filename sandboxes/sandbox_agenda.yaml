@@ -12,21 +12,21 @@
   steps:
     - action: "check_ports"
       targets:
-        - host: training_platform
+        - host: training-platform
           ports: [22, 80]
-        - host: trainee_workstation
+        - host: trainee-workstation
           ports: [22]
-        - host: cyber_range
+        - host: cyber-range
           ports: [22, 8000]
-        - host: randomization_platform
+        - host: randomization-platform
           ports: [22, 8500]
         - host: bips
           ports: [22, 8600]
-        - host: ng_siem
+        - host: ng-siem
           ports: [22, 8700]
         - host: cicms
           ports: [22, 8800]
-        - host: ng_soar
+        - host: ng-soar
           ports: [22, 8900]
       notes: "Ensure core services listen on the expected ports after provisioning."
 - phase: "Workshop handoff"
