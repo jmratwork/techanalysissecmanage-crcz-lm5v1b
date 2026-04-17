@@ -240,6 +240,13 @@ providing clearer handoff notes for instructors.
 > - **Description (optional)**: “Subcase 1b topology for NG‑SOC labs”
 >
 > This example matches the definition included in this repository and prevents discrepancies during packaging and publication.
+>
+> ℹ️ **Host/router naming rule (KYPO):** every host and router key in
+> `sandboxes/topology_subcase_1b.yaml` must use lowercase letters and digits,
+> optionally separated by hyphens, for example `training-platform` or `router`.
+> Use the pattern `^[a-z0-9]+(?:-[a-z0-9]+)*$` (**no `_` allowed**, `-` allowed).
+> Keep this rule when adding or renaming nodes to avoid topology/import
+> regressions.
 
 #### CLI walkthrough
 
