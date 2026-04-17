@@ -41,7 +41,7 @@ flowchart TD
    ```bash
    ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
    ```
-   This is the primary operational path and configures venv, systemd, nginx and environment file through the `training_platform` role.
+   This is the primary operational path and configures venv, systemd, nginx and environment file through the `training_platform` role. If the application code is not already present on the target VM, set `training_platform_source_mode=sync_from_repo` in group vars before running the playbook.
 2. **Create the Course (compatibility helper)**
    ```bash
    export INSTRUCTOR_PASSWORD='S3cureP@ss'
@@ -143,7 +143,7 @@ ZAP rules, or OpenVAS scan parameters to match their environment.
 
 Instead of using the helper script, trainees may trigger individual scans
 through the training platform. First obtain an authentication token and then
-launch a tool via the REST interface:
+launch a tool via the REST interface. In canonical deployments, access the API through nginx on port 80 (`http://<training_platform_host>/...`). The examples below use `localhost:5000` for local helper runs:
 
 ```bash
 # start an OpenVAS scan
@@ -185,7 +185,7 @@ Trainee actions within the Cyber Range can be submitted back to the
 training platform using the `POST /results` endpoint. The endpoint
 calculates basic metrics such as quiz score and time spent on an
 exercise and writes them to `results.json`. An internal progress value
-is updated and forwarded to the Open edX `/courseware/` API so that the
+is updated and forwarded to the Open edX `/courseware/progress` API so that the
 learner's status is reflected in the LMS.
 
 ```bash
@@ -289,19 +289,19 @@ learner into the KYPO lab.
 
 ### Mapping KYPO results to Open edX grading
 
-KYPO activities report completion data back to the training platform via
-the `/listener` endpoint. The platform aggregates submitted `score` and
-`flag` values and forwards the metrics to Open edX using the
-`/courseware/progress` API. The LTI component’s weight determines how
-these metrics influence the final grade. Instructors can review the raw
-aggregated data with the `/results` endpoint to understand the learner’s
-performance and adjust grading policies as needed.
+The training platform exposes `POST /results` as the canonical endpoint for
+recording learner outcomes (scores and timing metrics). After storing the
+submission, the service forwards progress to Open edX via
+`/courseware/progress` and can also push grades to the configured gradebook
+endpoint. The LTI component’s weight determines how these metrics influence
+the final course score. Instructors can review aggregated data through
+`/results` and `GET /edx_failures` for troubleshooting sync failures.
 
 ## Expected Outcomes
 
 - Course creation logs at `/var/log/training_platform/courses.log`.
 - Cyber Range initialization logs at `/var/log/cyber_range/launch.log`.
-- Trainee scan results at `/var/log/trainee/scans.log` and progress stored in the training platform.
+- Trainee scan results at `/var/log/trainee/lab_runner.log` and generated tool artifacts at `/var/log/trainee/<tool>_<job_id>.(txt|html)` with progress stored in the training platform.
 - Scan documents stored in MongoDB collection `scans` for later analysis.
 
 ## References

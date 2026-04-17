@@ -55,7 +55,7 @@ outcome of the lab.
 ## Trainee Workflow
 
 1. **Scenario Preparation** – Review the scenario description and objectives. Ensure access to required accounts and tools within CyberRangeCZ.
-2. **Hands-on Investigation** – Use the training platform to follow course instructions and run semi-automated penetration tests against the Cyber Range.
+2. **Hands-on Investigation** – Use the training platform (canonical access via nginx on `http://<training_platform_host>/`) to follow course instructions and run semi-automated penetration tests against the Cyber Range.
 3. **Reporting** – Compile findings into an assessment report, highlighting discovered vulnerabilities, applicable policy references, and suggested mitigations.
 
 ## Instructor Workflow
@@ -69,7 +69,7 @@ Both trainees and instructors can submit exercise outcomes through the
 training platform's `POST /results` endpoint. The service stores metrics
 such as completion time and quiz scores in `results.json`, updates local
 course progress, and relays that progress to the Open edX
-`/courseware/` API so that learner dashboards show the latest status.
+`/courseware/progress` API so that learner dashboards show the latest status.
 
 ### API Usage
 
