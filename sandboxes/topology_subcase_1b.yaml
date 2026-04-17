@@ -97,6 +97,7 @@ routers:
       - network: training-net
         ip: 10.10.0.1
 networks:
+  # NOTE: Keep this network key in kebab-case for KYPO validation.
   training-net:
     prefix: 10.10.0.0/24
 base_box:
