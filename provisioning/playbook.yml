@@ -5,18 +5,18 @@
     - logging
 
 
-- hosts: training_platform
+- hosts: training-platform
   become: true
   roles:
     - training_platform
 
 
-- hosts: trainee_workstation
+- hosts: trainee-workstation
   become: true
   roles:
     - trainee_workstation
 
-- hosts: cyber_range
+- hosts: cyber-range
   become: true
   roles:
     - cyber_range_setup
@@ -37,7 +37,7 @@
         common_bootstrap_install_docker: "{{ (cicms_install_method | default('deb')) == 'docker' or (cicms_docker_enabled | default(false) | bool) }}"
     - cicms
 
-- hosts: ng_siem
+- hosts: ng-siem
   become: true
   roles:
     - role: common_bootstrap
@@ -45,7 +45,7 @@
         common_bootstrap_install_docker: "{{ (ng_siem_install_method | default('deb')) == 'docker' or (ng_siem_docker_enabled | default(false) | bool) }}"
     - ng_siem
 
-- hosts: ng_soar
+- hosts: ng-soar
   become: true
   roles:
     - role: common_bootstrap
@@ -53,7 +53,7 @@
         common_bootstrap_install_docker: "{{ (ng_soar_install_method | default('deb')) == 'docker' or (ng_soar_docker_enabled | default(false) | bool) }}"
     - ng_soar
 
-- hosts: randomization_platform
+- hosts: randomization-platform
   become: true
   roles:
     - randomization_platform
