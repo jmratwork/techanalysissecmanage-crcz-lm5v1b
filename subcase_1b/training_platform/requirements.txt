@@ -3,3 +3,5 @@ requests
 PyJWT
 Jinja2
 PyYAML
+
+bcrypt
