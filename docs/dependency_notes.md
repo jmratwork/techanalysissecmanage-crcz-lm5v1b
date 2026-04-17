@@ -1,9 +1,21 @@
 # Dependency Notes
 
-This repository replaces disallowed utilities with tools from the approved list.
+## Contrato global de dependencias
 
-- `nmap`: Used in `subcase_1b/scripts/trainee_start.sh` to perform port scans. Nmap is an approved scanning utility.
-- `docker` and `docker compose`: Required by `subcase_1b/scripts/cyber_range_start.sh` to launch the containerized lab environment. The scripts fall back to direct service startup when `ALLOW_NO_DOCKER` is set.
-- `zip`: Used by `subcase_1b/scripts/collect_artifacts.sh` to package logs for after-action review.
+La fuente de verdad para dependencias Python está en la raíz del repositorio:
 
-No additional network tools are necessary; standard systemd and Bash components remain.
+- `requirements.txt`: dependencias de runtime pinneadas.
+- `requirements-dev.txt`: contrato para desarrollo/tests (incluye runtime + tooling de test).
+
+## Instalación única (todos los componentes Python)
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements-dev.txt
+```
+
+## Alineación de subcomponentes
+
+`subcase_1b/training_platform/requirements.txt` no declara versiones propias: reexporta `../../requirements.txt` para evitar drift y mantener una sola versión efectiva por paquete.
