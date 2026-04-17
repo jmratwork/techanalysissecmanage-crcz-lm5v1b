@@ -79,8 +79,8 @@ Para detalles operativos y comandos Ansible exactos, consulta `provisioning/READ
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/example/techanalysissecmanage-crcz.git
-   cd techanalysissecmanage-crcz
+   git clone https://github.com/jmratwork/techanalysissecmanage-crcz-lm5v1b.git
+   cd techanalysissecmanage-crcz-lm5v1b
    ```
 2. **Authenticate to CyberRangeCZ** – Ensure VPN or direct connectivity and log into the portal.
 3. **Prepare the Scenario** – Upload the penetration testing helper scripts from `subcase_1b/scripts/` to the appropriate CRCZ repositories so they are accessible to the exercise.

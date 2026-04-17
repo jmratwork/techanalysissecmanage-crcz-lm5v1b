@@ -16,18 +16,33 @@ Trainees should familiarize themselves with fundamental concepts in network secu
 Trainees are invited and registered through the training platform CLI in
 `subcase_1b/training_platform/cli.py`. The script contacts the Open edX
 service via `open_edx_client.py` to create course entries and confirm the
-enrollment. Instructors typically bootstrap the platform with
-`subcase_1b/scripts/training_platform_start.sh`, which starts the API that
-handles these enrollment requests.
+enrollment.
+
+Canonical setup for the training platform must be executed via Ansible:
+
+```bash
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
+```
+
+`subcase_1b/scripts/training_platform_start.sh` remains available as a
+compatibility/lab helper and must not be treated as a second canonical
+provisioning implementation.
 
 ## Lab run
 
 Once enrolled, trainees launch the hands‑on lab in the KYPO cyber range.
-The environment is provisioned using `subcase_1b/scripts/cyber_range_start.sh`
-and individualized scans can be executed with
-`subcase_1b/scripts/trainee_start.sh --target <ip>`. Scenario specifics are
-described in `subcase_1b/scenario.yml` and the corresponding topology file
-`sandboxes/topology_subcase_1b.yaml`.
+Canonical provisioning for the lab hosts is executed with:
+
+```bash
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit subcase_1b
+```
+
+Compatibility scripts (for local/demo orchestration) can still be used where
+appropriate, for example `subcase_1b/scripts/cyber_range_start.sh` and
+`subcase_1b/scripts/trainee_start.sh --target <ip>`.
+
+Scenario specifics are described in `subcase_1b/scenario.yml` and the
+corresponding topology file `sandboxes/topology_subcase_1b.yaml`.
 
 ## Evaluation
 
@@ -40,7 +55,7 @@ outcome of the lab.
 ## Trainee Workflow
 
 1. **Scenario Preparation** – Review the scenario description and objectives. Ensure access to required accounts and tools within CyberRangeCZ.
-2. **Hands-on Investigation** – Use the training platform to follow course instructions and run semi-automated penetration tests against the Cyber Range.
+2. **Hands-on Investigation** – Use the training platform (canonical access via nginx on `http://<training_platform_host>/`) to follow course instructions and run semi-automated penetration tests against the Cyber Range.
 3. **Reporting** – Compile findings into an assessment report, highlighting discovered vulnerabilities, applicable policy references, and suggested mitigations.
 
 ## Instructor Workflow
@@ -54,7 +69,7 @@ Both trainees and instructors can submit exercise outcomes through the
 training platform's `POST /results` endpoint. The service stores metrics
 such as completion time and quiz scores in `results.json`, updates local
 course progress, and relays that progress to the Open edX
-`/courseware/` API so that learner dashboards show the latest status.
+`/courseware/progress` API so that learner dashboards show the latest status.
 
 ### API Usage
 
@@ -64,8 +79,6 @@ course progress, and relays that progress to the Open edX
 - `POST /login` – exchange credentials for an authentication token.
 - `POST /progress` / `GET /progress` – submit or fetch course progress.
 - `POST /results` – manually upload lab scores and timing data.
-- `POST /listener` – used by the KYPO range to push automatic score/flag
-  updates to the platform.
 
 #### Instructors
 
