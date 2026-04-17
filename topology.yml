@@ -58,38 +58,38 @@ routers:
     flavor: standard.small
 
 networks:
-  - name: training_net
+  - name: training-net
     cidr: 10.10.0.0/24
 
 net_mappings:
   - host: training-platform
-    network: training_net
+    network: training-net
     ip: 10.10.0.2
   - host: trainee-workstation
-    network: training_net
+    network: training-net
     ip: 10.10.0.3
   - host: cyber-range
-    network: training_net
+    network: training-net
     ip: 10.10.0.4
   - host: randomization-platform
-    network: training_net
+    network: training-net
     ip: 10.10.0.5
   - host: bips
-    network: training_net
+    network: training-net
     ip: 10.10.0.6
   - host: ng-siem
-    network: training_net
+    network: training-net
     ip: 10.10.0.7
   - host: cicms
-    network: training_net
+    network: training-net
     ip: 10.10.0.8
   - host: ng-soar
-    network: training_net
+    network: training-net
     ip: 10.10.0.9
 
 router_mappings:
   - router: router
-    network: training_net
+    network: training-net
     ip: 10.10.0.1
 
 groups:

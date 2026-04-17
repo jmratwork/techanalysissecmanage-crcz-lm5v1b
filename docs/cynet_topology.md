@@ -1,7 +1,7 @@
 # CYNET Topology Overview
 
 ## Subcase 1b
-- Network segment `training_net` (10.10.0.0/24)
+- Network segment `training-net` (10.10.0.0/24)
 - Virtual machines (canonical host naming):
   - **training_platform** – Debian 11
   - **trainee_workstation** – Kali
