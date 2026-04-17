@@ -10,26 +10,26 @@ ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 For compatibility, `site.yml` in this folder is only a wrapper (`import_playbook`) that delegates to
 `../../provisioning/playbook.yml`.
 
-> Regla de operación: este árbol no es un segundo entrypoint de provisioning.
-> Úsalo solo para empaquetado/compatibilidad; toda lógica funcional vive en `provisioning/`.
+> Operation rule: this tree is not a second provisioning entrypoint.
+> Use for packaging/compatibility only; all functional logic lives in `provisioning/`.
 
-## Alcance de este directorio (wrapper-only)
+## Scope of this directory (wrapper-only)
 
-- `site.yml` debe permanecer como wrapper (`import_playbook`) sin tareas propias de aprovisionamiento.
-- No se deben añadir aquí catálogos de paquetes, recetas de instalación manual ni defaults operativos.
-- Las variables y artefactos reales de despliegue se definen en `provisioning/group_vars/*.yml` y `provisioning/roles/**`.
-- Cualquier ajuste funcional debe implementarse únicamente en `provisioning/`.
+- `site.yml` must remain a wrapper (`import_playbook`) without its own provisioning tasks.
+- Package catalogs, manual installation recipes or operational defaults should not be added here.
+- Real deployment variables and artefacts are defined in `provisioning/group_vars/*.yml` and `provisioning/roles/**`.
+- Any functional adjustments should be implemented in `provisioning/` only.
 
-## Nota sobre documentación de paquetes
+## Note on package documentation
 
-Para evitar flujos competidores o placeholders engañosos, este árbol no mantiene tablas de paquetes ni
-instrucciones de instalación manual. La única referencia operativa válida para aprovisionamiento es
+To avoid competing flows or misleading placeholders, this tree does not maintain packet tables or
+manual installation instructions. The only valid operational reference for provisioning is
 `provisioning/README.md`.
 
 
 > Los scripts `build_training_platform.sh`, `build_trainee_workstation.sh` y
 > `download_offline_artifacts.sh` son utilidades de empaquetado/offline image prep.
-> No sustituyen el flujo canónico de provisioning con `provisioning/playbook.yml`.
+> Do not replace the canonical provisioning flow with `provisioning/playbook.yml`.
 
 ## Trainee workstation tool versions
 

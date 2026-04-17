@@ -1,7 +1,7 @@
 # trainee_workstation role
 
 Instala herramientas operativas para el host `trainee_workstation` con mapeo de paquetes
-por distribución para tolerar diferencias entre Kali y Debian.
+by distribution to tolerate differences between Kali and Debian.
 
 ## Paquetes gestionados
 
@@ -13,19 +13,19 @@ Por defecto instala:
 - `zaproxy`
 - `python3-pip`
 
-Si un paquete no existe en los repositorios configurados, el rol no aborta la ejecución;
-registra mensajes claros indicando qué paquete no se pudo instalar y continúa.
+If a package does not exist in the configured repositories, the role does not abort the execution;
+logs clear messages indicating which package could not be installed and continues.
 
 ## Caldera CLI (opcional)
 
 El flujo actual contiene acciones que invocan `caldera run` (por ejemplo,
 `subcase_1b/scripts/lab_runner.sh` y `subcase_1b/training_platform/app.py`).
-Para reflejar esta dependencia sin forzar su instalación en todos los entornos, se expone:
+To reflect this dependency without forcing its installation in all environments, we expose:
 
 - `install_caldera_cli` (bool, default `false`)
 - `trainee_workstation_caldera_cli_package` (string, default `caldera-cli`)
 
-Actívalo cuando tu repositorio/imagen proporcione dicho paquete.
+Activate it when your repository/image provides such a package.
 
 ## Variables
 

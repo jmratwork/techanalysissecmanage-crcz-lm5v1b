@@ -1,11 +1,11 @@
 # randomization_platform role
 
-Configura la plataforma de randomización para entornos Debian/Kali con un mínimo operativo e idempotente:
+Configure the randomization platform for Debian/Kali environments with minimal operational and idempotent:
 
 - instala dependencias base del runtime (`bash`, `coreutils`),
 - valida que exista el script artefacto esperado,
 - crea `/var/log/randomization_platform`,
-- despliega y gestiona un servicio systemd (o ejecución controlada sin systemd).
+- deploys and manages a systemd service (or controlled execution without systemd).
 
 ## Variables principales
 
@@ -15,7 +15,7 @@ Ver `defaults/main.yml`.
 - `randomization_platform_script_path`: destino en el host gestionado.
 - `randomization_platform_user`: usuario/grupo para logs y servicio.
 - `randomization_platform_service_name`: nombre de la unidad.
-- `randomization_platform_manage_systemd`: activa/desactiva despliegue systemd.
+- `randomization_platform_manage_systemd`: enables/disables systemd deployment.
 - `randomization_platform_service_enabled`: habilitar al arranque.
 - `randomization_platform_service_state`: estado deseado (`started`, `stopped`, etc.).
 - `randomization_platform_run_controlled_script`: ejecuta el script sin systemd cuando `manage_systemd` es `false`.
@@ -23,4 +23,4 @@ Ver `defaults/main.yml`.
 ## Notas de uso
 
 Por defecto el rol copia `subcase_1b/scripts/randomization_platform_start.sh` al host remoto.
-Si el artefacto no existe, el rol falla con un mensaje de error útil para facilitar el diagnóstico.
+If the artifact does not exist, the role fails with a helpful error message to aid diagnosis.

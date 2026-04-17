@@ -1,7 +1,7 @@
 ---
-# Estrategia de código para training_platform:
-# - assert_present (default): exige que el código ya exista en el host remoto.
-# - sync_from_repo: sincroniza código desde el repositorio local (controller) al host remoto.
+# Code strategy for training_platform:
+# - assert_present (default): Requires that the code already exists on the remote host.
+# - sync_from_repo: sync code from the local repository (controller) to the remote host.
 training_platform_source_mode: assert_present
 training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
 training_platform_sync_delete: false

@@ -2,36 +2,36 @@
 
 Prepara una base operativa verificable para el host `cyber_range`.
 
-## Qué **sí** hace
+## What **does** it do
 
 - Incluye `common_bootstrap` con Docker habilitado para alinear el host con el resto del laboratorio.
-- Valida parámetros mínimos del rol (directorios y ownership) con `assert`.
-- Instala paquetes base realmente usados por scripts/operación del escenario:
+- Validate minimum role parameters (directories and ownership) with `assert`.
+- Install base packages actually used by scripts/scenario operation:
   - runtime y utilidades (`bash`, `coreutils`, `curl`, `jq`, `python3`, `python3-pip`),
   - utilidades de red (`iproute2`, `net-tools`, `dnsutils`, `iputils-ping`, `traceroute`, `tcpdump`, `nmap`),
-  - hardening/utilidades mínimas (`ca-certificates`, `unattended-upgrades`, `fail2ban`, `ufw`).
+  - minimal hardening/utilities (`ca-certificates`, `unattended-upgrades`, `fail2ban`, `ufw`).
 - Crea directorios de trabajo y logs (`/opt/cyber_range`, `/var/log/cyber_range` por defecto).
-- Aplica hardening mínimo con un perfil sysctl idempotente en `/etc/sysctl.d/99-cyber-range-hardening.conf`.
+- Apply minimal hardening with an idempotent sysctl profile in `/etc/sysctl.d/99-cyber-range-hardening.conf`.
 - Valida artefactos de escenario del repositorio (en controlador) con `stat` + `assert/debug`:
   - `subcase_1b/scenario.yml`,
   - `subcase_1b/scripts/cyber_range_start.sh`,
   - `subcase_1b/scripts/lab_runner.sh`,
   - `subcase_1b/scripts/collect_artifacts.sh`.
 
-## Qué **no** hace
+## What **doesn't** do
 
-- No despliega por sí solo todos los servicios de escenario completo (SIEM/SOAR/CICMS/BIPS/etc.).
+- It does not deploy all the full scenario services on its own (SIEM/SOAR/CICMS/BIPS/etc.).
 - No intenta “inventar” artefactos faltantes.
-- No soporta familias de OS fuera de Debian (falla explícitamente con `assert`).
+- Does not support OS families outside of Debian (fails explicitly with `assert`).
 
-## Limitación documentada cuando faltan artefactos
+## Documented limitation when artifacts are missing
 
-Para evitar un rol “vacío”, el comportamiento es explícito y verificable:
+To avoid an “empty” role, the behavior is explicit and verifiable:
 
 - `cyber_range_setup_require_full_target: true`  
   Falla si falta cualquier artefacto requerido.
 - `cyber_range_setup_require_full_target: false` (default)  
-  Continúa con la provisión base y registra una **limitación explícita** (`debug`) indicando qué artefactos faltan y que el target completo no quedó provisionado.
+  Continue with the base provisioning and log an explicit limitation (`debug`) indicating which artifacts are missing and that the entire target was not provisioned.
 
 ## Variables principales
 

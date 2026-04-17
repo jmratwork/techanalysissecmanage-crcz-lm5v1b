@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 IDS_MODULE_PATH="${REPO_ROOT}/subcase_1b/training_platform/results_service.py"
 
 if [ ! -f "${IDS_MODULE_PATH}" ]; then
-    echo "No se encontró un módulo de analítica en ${IDS_MODULE_PATH}; se omite la actualización del modelo." >&2
+    echo "An analytics module was not found in ${IDS_MODULE_PATH}; model update is skipped." >&2
     exit 0
 fi
 

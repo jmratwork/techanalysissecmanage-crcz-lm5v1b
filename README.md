@@ -17,14 +17,14 @@ This repository provides complete, ready‑to‑deploy instructions for CyberRan
   This command validates required integration variables and fails if unresolved placeholders like `__REQUIRED_*__` are still present.
 
 
-## Instalación de dependencias (contrato único)
+## Installing dependencies (single contract)
 
-Este repositorio define un **contrato global único** de dependencias Python en la raíz:
+This repository defines a **single global contract** of Python dependencies at the root:
 
 - Runtime: `requirements.txt`
 - Desarrollo/tests: `requirements-dev.txt`
 
-Instalación recomendada:
+Recommended installation:
 
 ```bash
 python -m venv .venv
@@ -39,30 +39,30 @@ pip install -r requirements-dev.txt
 
 See [deployment manual](docs/deployment_manual.md) for detailed steps including VM preparation, service orchestration, teardown, and environment reset.
 
-## Fuente canónica única (Subcaso 1b)
+## Single canonical source (Subcase 1b)
 
-Contrato formal de referencia: [`docs/canonical_provisioning_contract.md`](docs/canonical_provisioning_contract.md).
+Formal reference contract: [`docs/canonical_provisioning_contract.md`](docs/canonical_provisioning_contract.md).
 
 
-Para evitar derivaciones entre árboles legacy y wrappers, este repositorio define una única fuente canónica de aprovisionamiento:
+To avoid branching between legacy trees and wrappers, this repository defines a single canonical source of supply:
 
-- **Playbook canónico:** `provisioning/playbook.yml`
-- **Inventario canónico:** `provisioning/inventory.ini`
+- **Canonical playbook:** `provisioning/playbook.yml`
+- **Canonical inventory:** `provisioning/inventory.ini`
 
-Wrappers soportados (solo compatibilidad de rutas):
+Supported wrappers (path compatibility only):
 
 - `sandboxes/provisioning_subcase_1b/site.yml`
 - `subcase_1b/ansible/playbook.yml`
 
-Regla operativa: ejecuta aprovisionamiento manual únicamente con:
+Operating rule: Run manual provisioning only with:
 
 ```bash
 ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
 
-No mantengas ni introduzcas lógica de aprovisionamiento paralela en `sandboxes/` o en `subcase_1b/ansible/roles/**`.
+Do not maintain or introduce parallel provisioning logic in `sandboxes/` or `subcase_1b/ansible/roles/**`.
 
-Los archivos de `subcase_1b/ansible/roles/**` se conservan como snapshot legado para trazabilidad y no deben considerarse fuente de verdad ni runtime del flujo principal.
+Files under `subcase_1b/ansible/roles/**` are kept as a legacy snapshot for traceability and should not be considered the source of truth nor runtime of the main flow.
 
 ## CI checks (equivalentes locales)
 
@@ -76,30 +76,30 @@ PYTHONPATH=. pytest tests/ soc_alerts/tests/
 ```
 
 
-## Estado de aprovisionamiento por host (playbook canónico)
+## Provisioning status per host (canonical playbook)
 
-El aprovisionamiento canónico de Subcaso 1b vive en `provisioning/playbook.yml`.
-La decisión actual por host es:
+Subcase 1b canonical provisioning lives in `provisioning/playbook.yml`.
+The current decision per host is:
 
-- `training_platform`: provisión activa (`training_platform`).
-- `trainee_workstation`: provisión activa (`trainee_workstation`).
-- `cyber_range`: provisión activa (`cyber_range_setup`).
-- `randomization_platform`: **sí tiene provisión mínima activa** mediante un rol dedicado (`randomization_platform`) que instala runtime mínimo (bash), crea directorios de logs y despliega/ejecuta el script artefacto como servicio systemd.
-- `bips`: provisión activa (`common_bootstrap` + `bips`).
-- `ng_siem`: provisión activa (`common_bootstrap` + `ng_siem`).
-- `cicms`: provisión activa (`common_bootstrap` + `cicms`).
-- `ng_soar`: provisión activa (`common_bootstrap` + `ng_soar`).
-- `router`: **sin provisión activa funcional** en este repositorio; se mantiene un rol explícito `router_noop` con `assert`/`debug` para dejar esta condición visible y evitar silencio ambiguo.
+- `training_platform`: active provision (`training_platform`).
+- `trainee_workstation`: provision active (`trainee_workstation`).
+- `cyber_range`: provision active (`cyber_range_setup`).
+- `randomization_platform`: **does have active minimal provisioning** through a dedicated role (`randomization_platform`) that installs minimal runtime (bash), creates log directories and deploys/executes the artifact script as a systemd service.
+- `bips`: provision active (`common_bootstrap` + `bips`).
+- `ng_siem`: active provisioning (`common_bootstrap` + `ng_siem`).
+- `cicms`: active provisioning (`common_bootstrap` + `cicms`).
+- `ng_soar`: active provisioning (`common_bootstrap` + `ng_soar`).
+- `router`: **no functional active provision** in this repository; An explicit `router_noop` ​​role is maintained with `assert`/`debug` to leave this condition visible and avoid ambiguous silence.
 
 Host/grupo legado aislado:
 
-- `soc_server`: **deprecado/legacy**. No está en el inventario canónico ni se debe usar para ejecutar `provisioning/playbook.yml`.
+- `soc_server`: **deprecated/legacy**. It is not in the canonical inventory nor should it be used to run `provisioning/playbook.yml`.
 
-Verificación rápida por host (flujo canónico):
+Quick verification per host (canonical flow):
 
-- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit randomization_platform` valida la provisión mínima real de `randomization_platform`.
-- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit router` ejecuta el no-op explícito (`router_noop`) y deja trazabilidad visible.
-- **No ejecutar** `--limit soc_server`: ese grupo no forma parte del inventario canónico de Subcaso 1b.
+- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit randomization_platform` validates the actual minimum provisioning of `randomization_platform`.
+- `ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit router` runs explicit no-op (`router_noop`) and leaves traceability visible.
+- **Do not run** `--limit soc_server`: that group is not part of the canonical inventory of Subcase 1b.
 
 Para detalles operativos y comandos Ansible exactos, consulta `provisioning/README.md`.
 
@@ -110,22 +110,22 @@ Para detalles operativos y comandos Ansible exactos, consulta `provisioning/READ
    cd techanalysissecmanage-crcz-lm5v1b
    ```
 2. **Authenticate to CyberRangeCZ** – Ensure VPN or direct connectivity and log into the portal.
-3. **Preflight obligatorio de integraciones** – Ejecuta y valida:
+3. **Mandatory integrations preflight** – Run and validate:
    ```bash
    python scripts/preflight_integrations.py
    ```
-   Si el script devuelve `NO LISTO`, completa variables faltantes y reemplaza placeholders antes de continuar.
+   If the script returns `NOT READY`, fill in missing variables and replace placeholders before continuing.
 4. **Prepare the Scenario** – Upload the penetration testing helper scripts from `subcase_1b/scripts/` to the appropriate CRCZ repositories so they are accessible to the exercise.
 5. **Launch the Cyber Range** – Use `subcase_1b/scripts/cyber_range_start.sh` to start the simulated environment for Subcase 1b and provision the trainee workstation.
-6. **Start the Training Platform (canónico)** – Provisiona `training_platform` desde Ansible canónico:
+6. **Start the Training Platform (canonical)** – Provision `training_platform` from canonical Ansible:
    ```bash
    ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
    ```
-   `subcase_1b/scripts/training_platform_start.sh` se mantiene como helper de compatibilidad/lab (no como flujo operativo principal).
+   `subcase_1b/scripts/training_platform_start.sh` is kept as a compatibility/lab helper (not as the main operational flow).
 
 ### Phishing Quiz Module
 
-Tras aprovisionar `training_platform` por el flujo canónico, la aplicación incluye un phishing-awareness quiz. Si usas el helper legacy `subcase_1b/scripts/training_platform_start.sh`, define `PASSWORD` con un valor fuerte antes de arrancar. Una vez activo el servicio, puedes usar:
+After provisioning `training_platform` by the canonical flow, the application includes a phishing-awareness quiz. If you use the legacy helper `subcase_1b/scripts/training_platform_start.sh`, set `PASSWORD` to a strong value before starting. Once the service is activated, you can use:
 
 - `GET /quiz/start` – obtain questions.
 - `POST /quiz/submit` – send answers and record the score.
@@ -192,9 +192,9 @@ Additional theoretical background and workflow guidance can be found in [`docs/t
 ## Known limitations / TODOs reales
 
 - El host `router` permanece como no-op documentado (`router_noop`), sin tareas de hardening/enrutamiento aplicadas desde este repositorio.
-- El grupo `soc_server` está aislado como legado: no forma parte del flujo canónico de aprovisionamiento.
-- La carpeta `subcase_1b/ansible/roles/**` sigue siendo legacy (compatibilidad); los cambios funcionales deben aplicarse en `provisioning/roles/**`.
-- Persisten dependencias de integraciones externas (Open edX, IRIS, MISP, KYPO) que requieren credenciales y endpoints válidos fuera de este repositorio.
+- The `soc_server` group is isolated as legacy: it is not part of the canonical provisioning flow.
+- The `subcase_1b/ansible/roles/**` folder remains legacy (compatibility); functional changes must be applied in `provisioning/roles/**`.
+- Dependencies persist on external integrations (Open edX, IRIS, MISP, KYPO) that require valid credentials and endpoints outside of this repository.
 
 ## Scenario Resources
 
@@ -231,7 +231,7 @@ The agenda steps **must** be a flat sequence of `- action: ...` entries (no
 `training.yaml` are reused, so validation and packaging work identically while
 providing clearer handoff notes for instructors.
 
-> ⚠️ **Sube únicamente `sandboxes/sandbox_agenda_ui.yaml` en el campo _Sandbox Agenda_.** Debe ser una secuencia plana (lista de `- action: ...`). No uses `sandbox_agenda_definition.yaml` en la UI de KYPO.
+> ⚠️ **Upload only `sandboxes/sandbox_agenda_ui.yaml` in the _Sandbox Agenda_ field.** It must be a flat sequence (list of `- action: ...`). Do not use `sandbox_agenda_definition.yaml` in the KYPO UI.
 
 > ℹ️ **Required topology**: when creating the topology in KYPO, use the exact name `subcase-1b-topology` (as shown in [`sandboxes/topology_subcase_1b.yaml`](sandboxes/topology_subcase_1b.yaml)) and select the file `sandboxes/topology_subcase_1b.yaml`. In the KYPO form, fill in the key fields with these values to avoid introducing variants such as `subcase_to_topology`:
 >
