@@ -12,17 +12,17 @@
           - bips_install_method != 'docker' or bips_docker_enabled | bool
           - bips_install_method != 'docker' or bips_docker_project_src | length > 0
         fail_msg: >-
-          Configuración inválida para BIPS. Si usarás deb, define bips_repo_url, bips_package_path y
-          bips_package_checksum en provisioning/group_vars/subcase_1b.yml (o en el group_vars/host_vars de tu inventario).
-          Si no usarás deb, cambia bips_install_method a "docker".
+          Invalid configuration for BIPS. If you will use deb, define bips_repo_url, bips_package_path and
+          bips_package_checksum in provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars).
+          If you will not use deb, change bips_install_method to "docker".
 
     - name: Assert supported OS family for BIPS deb flow
       ansible.builtin.assert:
         that:
           - ansible_os_family == 'Debian'
         fail_msg: >-
-          BIPS con install_method=deb requiere hosts Debian-family (apt/deb).
-          Host detectado: {{ ansible_os_family }} / {{ ansible_distribution }}.
+          BIPS with install_method=deb requires Debian-family hosts (apt/deb).
+          Detected host: {{ ansible_os_family }} / {{ ansible_distribution }}.
       when: bips_install_method == 'deb'
 
     - name: BIPS deb installation flow
@@ -90,8 +90,8 @@
               - bips_docker_image != '__REQUIRED_DOCKER_IMAGE__'
               - bips_docker_tag != '__REQUIRED_DOCKER_TAG__'
             fail_msg: >-
-              Faltan variables Docker de BIPS. Define bips_docker_image y bips_docker_tag con valores reales en
-              provisioning/group_vars/subcase_1b.yml (o en group_vars/host_vars de tu inventario), y verifica
+              BIPS Docker variables are missing. Define bips_docker_image and bips_docker_tag with real values in
+              provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars), and verify
               bips_docker_project_src/bips_docker_networks/bips_docker_wait_for.
 
         - name: Ensure BIPS Docker project directory exists
