@@ -1,12 +1,12 @@
 - phase: "Topology import"
   steps:
     - action: "upload_topology"
-      file: sandboxes/topology_subcase_1b.yaml
+      file: topology.yml
       notes: "Load hosts, networks, and router definitions for the training subnet."
 - phase: "Base provisioning"
   steps:
     - action: "run_playbook"
-      playbook: sandboxes/provisioning_subcase_1b/site.yml
+      playbook: provisioning/playbook.yml
       notes: "Install required packages across all nodes, including NG‑SOC services and trainee workstation tools."
 - phase: "Service validation"
   steps:
