@@ -10,6 +10,11 @@ This repository provides complete, ready‑to‑deploy instructions for CyberRan
 - Recommended familiarity with the CyberRangeCZ interface and the training platform runner used in Subcase 1b.
 - The provided startup scripts rely on `systemctl`. If your environment lacks systemd, set `DIRECT_START=1` to attempt starting services with legacy `service` commands or direct scripts.
 - Prepare required environment variables such as `LTI_TOOL_PRIVATE_KEY` and `OPENEDX_URL` as described in [docs/env_variables.md](docs/env_variables.md).
+- Run the mandatory preflight validation before any deployment:
+  ```bash
+  python scripts/preflight_integrations.py
+  ```
+  This command validates required integration variables and fails if unresolved placeholders like `__REQUIRED_*__` are still present.
 
 
 ## Instalación de dependencias (contrato único)
@@ -105,9 +110,14 @@ Para detalles operativos y comandos Ansible exactos, consulta `provisioning/READ
    cd techanalysissecmanage-crcz-lm5v1b
    ```
 2. **Authenticate to CyberRangeCZ** – Ensure VPN or direct connectivity and log into the portal.
-3. **Prepare the Scenario** – Upload the penetration testing helper scripts from `subcase_1b/scripts/` to the appropriate CRCZ repositories so they are accessible to the exercise.
-4. **Launch the Cyber Range** – Use `subcase_1b/scripts/cyber_range_start.sh` to start the simulated environment for Subcase 1b and provision the trainee workstation.
-5. **Start the Training Platform (canónico)** – Provisiona `training_platform` desde Ansible canónico:
+3. **Preflight obligatorio de integraciones** – Ejecuta y valida:
+   ```bash
+   python scripts/preflight_integrations.py
+   ```
+   Si el script devuelve `NO LISTO`, completa variables faltantes y reemplaza placeholders antes de continuar.
+4. **Prepare the Scenario** – Upload the penetration testing helper scripts from `subcase_1b/scripts/` to the appropriate CRCZ repositories so they are accessible to the exercise.
+5. **Launch the Cyber Range** – Use `subcase_1b/scripts/cyber_range_start.sh` to start the simulated environment for Subcase 1b and provision the trainee workstation.
+6. **Start the Training Platform (canónico)** – Provisiona `training_platform` desde Ansible canónico:
    ```bash
    ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml --limit training_platform
    ```
