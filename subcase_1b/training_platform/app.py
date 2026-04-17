@@ -10,12 +10,18 @@ from flask import Flask, request, jsonify
 import phishing_quiz
 from open_edx_client import OpenEdXClient
 from results_service import append_result, aggregate_results
+from storage import (
+    TRAINING_DB_PATH,
+    create_session,
+    create_user,
+    get_user,
+    get_username_by_token,
+    init_schema,
+)
 
 app = Flask(__name__)
 
 # In-memory stores
-users = {}  # username -> {password, role}
-tokens = {}  # token -> username
 courses = {}  # course_id -> {title, content, instructor}
 invites = {}  # invite_code -> {course_id, email}
 progress = {}  # (course_id, username) -> progress
@@ -113,10 +119,14 @@ def _validate_tool(command):
 
 
 def authenticate(token):
-    username = tokens.get(token)
+    username = get_username_by_token(token)
     if not username:
         return None
-    return users.get(username)
+    return get_user(username)
+
+
+def token_username(token):
+    return get_username_by_token(token)
 
 
 @app.route('/register', methods=['POST'])
@@ -127,9 +137,9 @@ def register():
     role = data.get('role', 'trainee')
     if not username or not password:
         return jsonify({'error': 'username and password required'}), 400
-    if username in users:
+    if get_user(username):
         return jsonify({'error': 'user exists'}), 400
-    users[username] = {'password': password, 'role': role}
+    create_user(username, password, role)
     return jsonify({'status': 'registered'})
 
 
@@ -138,11 +148,11 @@ def login():
     data = request.get_json(force=True)
     username = data.get('username')
     password = data.get('password')
-    user = users.get(username)
+    user = get_user(username)
     if not user or user['password'] != password:
         return jsonify({'error': 'invalid credentials'}), 403
     token = str(uuid.uuid4())
-    tokens[token] = username
+    create_session(token, username)
     return jsonify({'token': token})
 
 
@@ -159,7 +169,7 @@ def create_course():
     courses[course_id] = {
         'title': title,
         'content': content,
-        'instructor': tokens[token]
+        'instructor': token_username(token)
     }
     return jsonify({'course_id': course_id})
 
@@ -195,7 +205,7 @@ def update_progress():
     if not user:
         return jsonify({'error': 'unauthorized'}), 403
     course_id = data.get('course_id')
-    username = data.get('username') or tokens[token]
+    username = data.get('username') or token_username(token)
     value = data.get('progress')
     progress[(course_id, username)] = value
     return jsonify({'status': 'updated'})
@@ -208,7 +218,7 @@ def get_progress():
     if not user:
         return jsonify({'error': 'unauthorized'}), 403
     course_id = request.args.get('course_id')
-    username = request.args.get('username') or tokens[token]
+    username = request.args.get('username') or token_username(token)
     value = progress.get((course_id, username), 0)
     return jsonify({'progress': value})
 
@@ -221,7 +231,7 @@ def post_results():
     if not user:
         return jsonify({'error': 'unauthorized'}), 403
     course_id = data.get('course_id')
-    username = data.get('username') or tokens[token]
+    username = data.get('username') or token_username(token)
     start = data.get('start_time')
     end = data.get('end_time')
     score = data.get('score', 0)
@@ -342,7 +352,7 @@ def kypo_launch():
     if not user or not lab_id:
         return jsonify({'error': 'unauthorized'}), 403
 
-    username = tokens[token]
+    username = token_username(token)
     try:
         launch_url = open_edx.generate_launch_url(username, lab_id)
     except Exception as exc:  # pragma: no cover - configuration errors
@@ -351,7 +361,10 @@ def kypo_launch():
     return jsonify({'launch_url': launch_url})
 
 
-phishing_quiz.init_app(app, authenticate, tokens, quiz_results, open_edx, edx_failures)
+init_schema()
+app.logger.info('Training DB path: %s', TRAINING_DB_PATH)
+
+phishing_quiz.init_app(app, authenticate, token_username, quiz_results, open_edx, edx_failures)
 
 
 if __name__ == '__main__':

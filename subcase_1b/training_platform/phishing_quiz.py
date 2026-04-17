@@ -112,7 +112,7 @@ quiz_questions = [
 def init_app(
     app,
     authenticate,
-    tokens,
+    token_username,
     quiz_results,
     open_edx: OpenEdXClient | None = None,
     edx_failures: list | None = None,
@@ -143,7 +143,7 @@ def init_app(
             qid = q['id']
             if str(answers.get(qid)) == str(q['answer']):
                 score += 1
-        username = tokens.get(token)
+        username = token_username(token)
         quiz_results[(course_id, username)] = {'answers': answers, 'score': score}
 
         result = {
@@ -176,6 +176,6 @@ def init_app(
         if not user:
             return jsonify({'error': 'unauthorized'}), 403
         course_id = request.args.get('course_id')
-        username = tokens.get(token)
+        username = token_username(token)
         result = quiz_results.get((course_id, username))
         return jsonify({'score': result['score'] if result else 0})
