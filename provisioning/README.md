@@ -52,7 +52,7 @@ Referencia de topología para Subcaso 1b: `sandboxes/topology_subcase_1b.yaml`.
 | `ng_siem` | `10.10.0.7` | `ng_siem` | `common_bootstrap` + `ng_siem` |
 | `cicms` | `10.10.0.8` | `cicms` | `common_bootstrap` + `cicms` |
 | `ng_soar` | `10.10.0.9` | `ng_soar` | `common_bootstrap` + `ng_soar` |
-| `router` | `10.10.0.1` | `router` | `router_noop` (no-op explícito) |
+| `router` | `10.10.0.1` | `router` | `router_noop` (no-op explícito, decisión final fuera de alcance) |
 
 Notas de coherencia:
 - `inventory.ini` usa `ansible_host=<hostname>` (resolución por nombre), por lo que los valores IP de la topología no se duplican en el inventario canónico.
@@ -102,11 +102,24 @@ El playbook `provisioning/playbook.yml` aplica roles locales sobre estos grupos:
 - `randomization_platform` → `randomization_platform` (provisión mínima real: runtime bash, directorio de logs, script artefacto y servicio systemd)
 - `router` → `router_noop` (no-op explícito con `assert` + `debug`: “sin provisión activa en este repositorio”)
 
+Decisión final de alcance para `router`:
+- En este repositorio **no** se implementa aprovisionamiento de red gestionado (NAT/firewall/routing).
+- El comportamiento canónico esperado es mantener `router_noop` como contrato explícito.
+
 ### Estado exacto por host (activo vs no-op)
 
 - **Hosts con rol activo**: `training_platform`, `trainee_workstation`, `cyber_range`, `randomization_platform`, `bips`, `ng_siem`, `cicms`, `ng_soar`.
 - **Host documentado como no-op**: `router` (rol `router_noop`).
 - **Host/grupo legacy aislado**: `soc_server` (no inventariado en `provisioning/inventory.ini`, no ejecutar `--limit soc_server`).
+
+#### Criterio de aceptación explícito (proyecto completo sin router gestionado)
+
+El estado de aprovisionamiento se considera **completo** aunque `router` permanezca en no-op cuando se cumpla simultáneamente:
+
+1. `router` está presente en topología + inventario + playbook canónicos.
+2. `router` apunta únicamente a `router_noop`.
+3. No existe automatización de red activa para `router` en `provisioning/roles/**`.
+4. La documentación canónica mantiene expresamente que el router gestionado está fuera de alcance.
 
 ### Integraciones externas (no se aprovisionan como servicios aquí)
 
@@ -212,15 +225,16 @@ Los wrappers de compatibilidad que importan el flujo canónico son:
 Ambos delegan en `provisioning/playbook.yml` para evitar desalineaciones entre playbooks/roles heredados.
 No dupliques tareas de aprovisionamiento en playbooks de sandbox o legacy.
 
-Además, `subcase_1b/ansible/roles/**` se considera **legado/no canónico**:
+Además, `subcase_1b/ansible/roles/**` se considera **legado/no canónico** y su política final es **retener snapshot en solo lectura**:
 
 - No debe editarse para cambios funcionales.
 - Cualquier cambio funcional debe hacerse en `provisioning/roles/**`.
-- Opcional recomendado: migrar/reducir el contenido legacy a wrappers o eliminarlo si no participa en el runtime de KYPO, conservando únicamente `subcase_1b/ansible/playbook.yml` como wrapper.
+- Se conserva como evidencia histórica/compatibilidad, pero no debe recibir nuevas features ni correcciones funcionales.
+- Cualquier evolución funcional debe implementarse en `provisioning/roles/**` y, de ser necesario, reflejarse solo como nota documental en el snapshot legacy.
 
 ## Known limitations / TODOs reales
 
-- `router` permanece como host no-op intencional: no hay tareas de configuración de red/firewall en el flujo canónico.
+- `router` permanece como host no-op intencional y definitivo en este alcance: no hay tareas de configuración de red/firewall/NAT/routing en el flujo canónico.
 - `soc_server` sigue como alias legacy aislado para documentación histórica; cualquier referencia debe migrarse a grupos canónicos.
-- Aún existe código/roles legacy en `subcase_1b/ansible/roles/**` por compatibilidad; falta completar su reducción a wrappers mínimos.
+- `subcase_1b/ansible/roles/**` se mantiene como snapshot legacy de solo lectura; no forma parte del camino de evolución funcional.
 - Parte del despliegue depende de plataformas externas (Open edX, IRIS, MISP, KYPO), por lo que el playbook no puede validar esas integraciones sin credenciales reales.
