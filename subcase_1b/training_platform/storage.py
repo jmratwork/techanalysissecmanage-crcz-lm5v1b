@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import time
+import json
 from contextlib import contextmanager
 
 
@@ -77,6 +78,7 @@ def init_schema():
             status TEXT NOT NULL,
             tool TEXT NOT NULL,
             output TEXT,
+            output_file TEXT,
             created_at REAL NOT NULL
         )
         """,
@@ -86,8 +88,29 @@ def init_schema():
             course_id TEXT,
             username TEXT,
             score REAL,
+            flag TEXT,
+            duration REAL,
             details TEXT,
             created_at REAL NOT NULL
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS quiz_results (
+            course_id TEXT NOT NULL,
+            username TEXT NOT NULL,
+            answers TEXT NOT NULL,
+            score REAL NOT NULL DEFAULT 0,
+            updated_at REAL NOT NULL,
+            PRIMARY KEY(course_id, username)
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS edx_failures (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_id TEXT,
+            username TEXT,
+            error TEXT NOT NULL,
+            timestamp REAL NOT NULL
         )
         """,
     ]
@@ -117,6 +140,23 @@ def init_schema():
             WHERE issued_at IS NULL OR expires_at IS NULL
             ''',
         )
+
+        # Backward-compatible migrations for existing databases.
+        results_columns = {
+            row['name']
+            for row in conn.execute("PRAGMA table_info(results)").fetchall()
+        }
+        if 'flag' not in results_columns:
+            conn.execute('ALTER TABLE results ADD COLUMN flag TEXT')
+        if 'duration' not in results_columns:
+            conn.execute('ALTER TABLE results ADD COLUMN duration REAL')
+
+        jobs_columns = {
+            row['name']
+            for row in conn.execute("PRAGMA table_info(jobs)").fetchall()
+        }
+        if 'output_file' not in jobs_columns:
+            conn.execute('ALTER TABLE jobs ADD COLUMN output_file TEXT')
 
 
 def get_user(username):
@@ -168,3 +208,170 @@ def revoke_session(token, revoked_at=None):
             (revoked_at, token),
         )
     return result.rowcount > 0
+
+
+def upsert_progress(course_id, username, value):
+    with _connect() as conn:
+        conn.execute(
+            '''
+            INSERT INTO progress(course_id, username, value, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(course_id, username)
+            DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+            ''',
+            (course_id, username, value, time.time()),
+        )
+
+
+def get_progress(course_id, username, default=0):
+    with _connect() as conn:
+        row = conn.execute(
+            'SELECT value FROM progress WHERE course_id = ? AND username = ?',
+            (course_id, username),
+        ).fetchone()
+    return row['value'] if row else default
+
+
+def upsert_quiz_result(course_id, username, answers, score):
+    payload = json.dumps(answers or {})
+    with _connect() as conn:
+        conn.execute(
+            '''
+            INSERT INTO quiz_results(course_id, username, answers, score, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(course_id, username)
+            DO UPDATE SET
+                answers = excluded.answers,
+                score = excluded.score,
+                updated_at = excluded.updated_at
+            ''',
+            (course_id, username, payload, score, time.time()),
+        )
+
+
+def get_quiz_result(course_id, username):
+    with _connect() as conn:
+        row = conn.execute(
+            '''
+            SELECT answers, score
+            FROM quiz_results
+            WHERE course_id = ? AND username = ?
+            ''',
+            (course_id, username),
+        ).fetchone()
+    if not row:
+        return None
+    try:
+        answers = json.loads(row['answers']) if row['answers'] else {}
+    except json.JSONDecodeError:
+        answers = {}
+    return {'answers': answers, 'score': row['score']}
+
+
+def append_edx_failure(course_id, username, error, timestamp=None):
+    value = timestamp if timestamp is not None else time.time()
+    with _connect() as conn:
+        conn.execute(
+            '''
+            INSERT INTO edx_failures(course_id, username, error, timestamp)
+            VALUES (?, ?, ?, ?)
+            ''',
+            (course_id, username, error, value),
+        )
+
+
+def list_edx_failures():
+    with _connect() as conn:
+        rows = conn.execute(
+            '''
+            SELECT course_id, username, error, timestamp
+            FROM edx_failures
+            ORDER BY id ASC
+            '''
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def create_job(job_id, tool, status='pending'):
+    with _connect() as conn:
+        conn.execute(
+            '''
+            INSERT INTO jobs(id, status, tool, output, output_file, created_at)
+            VALUES (?, ?, ?, NULL, NULL, ?)
+            ''',
+            (job_id, status, tool, time.time()),
+        )
+
+
+def update_job(job_id, **fields):
+    if not fields:
+        return
+    allowed = {'status', 'tool', 'output', 'output_file'}
+    updates = [(key, value) for key, value in fields.items() if key in allowed]
+    if not updates:
+        return
+    clause = ', '.join(f'{key} = ?' for key, _ in updates)
+    values = [value for _, value in updates] + [job_id]
+    with _connect() as conn:
+        conn.execute(f'UPDATE jobs SET {clause} WHERE id = ?', values)
+
+
+def get_job(job_id):
+    with _connect() as conn:
+        row = conn.execute(
+            '''
+            SELECT id, status, tool, output, output_file
+            FROM jobs
+            WHERE id = ?
+            ''',
+            (job_id,),
+        ).fetchone()
+    if not row:
+        return None
+    job = dict(row)
+    job.pop('id', None)
+    return job
+
+
+def append_result_record(result):
+    with _connect() as conn:
+        conn.execute(
+            '''
+            INSERT INTO results(course_id, username, score, flag, duration, details, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                result.get('course_id'),
+                result.get('username'),
+                result.get('score', 0),
+                result.get('flag'),
+                result.get('duration'),
+                json.dumps(result.get('details', {})),
+                result.get('timestamp', time.time()),
+            ),
+        )
+
+
+def aggregate_result_metrics(course_id, username):
+    with _connect() as conn:
+        total_row = conn.execute(
+            '''
+            SELECT COALESCE(SUM(score), 0) AS total_score
+            FROM results
+            WHERE course_id = ? AND username = ?
+            ''',
+            (course_id, username),
+        ).fetchone()
+        flags_rows = conn.execute(
+            '''
+            SELECT DISTINCT flag
+            FROM results
+            WHERE course_id = ? AND username = ? AND flag IS NOT NULL AND flag != ''
+            ORDER BY flag ASC
+            ''',
+            (course_id, username),
+        ).fetchall()
+    return {
+        'score': total_row['total_score'] if total_row else 0,
+        'flags': [row['flag'] for row in flags_rows],
+    }

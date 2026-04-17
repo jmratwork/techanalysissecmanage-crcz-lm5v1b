@@ -14,12 +14,21 @@ from results_service import append_result, aggregate_results
 from security import hash_password, verify_password
 from storage import (
     TRAINING_DB_PATH,
+    append_edx_failure,
     create_session,
+    create_job,
     create_user,
+    get_job,
+    get_progress as load_progress,
+    get_quiz_result,
     get_session_by_token,
     get_user,
     init_schema,
     revoke_session,
+    upsert_progress,
+    upsert_quiz_result,
+    update_job,
+    list_edx_failures,
 )
 
 app = Flask(__name__)
@@ -27,10 +36,34 @@ app = Flask(__name__)
 # In-memory stores
 courses = {}  # course_id -> {title, content, instructor}
 invites = {}  # invite_code -> {course_id, email}
-progress = {}  # (course_id, username) -> progress
-quiz_results = {}  # (course_id, username) -> {answers, score}
-edx_failures = []  # list of Open edX reporting failures
-jobs = {}  # job_id -> {status, tool, output}
+
+
+class PersistentQuizResults:
+    def __setitem__(self, key, value):
+        course_id, username = key
+        upsert_quiz_result(course_id, username, value.get('answers', {}), value.get('score', 0))
+
+    def get(self, key, default=None):
+        course_id, username = key
+        result = get_quiz_result(course_id, username)
+        return result if result is not None else default
+
+
+class PersistentEdxFailures:
+    def append(self, failure):
+        append_edx_failure(
+            failure.get('course_id'),
+            failure.get('username'),
+            failure.get('error', ''),
+            timestamp=failure.get('timestamp'),
+        )
+
+    def all(self):
+        return list_edx_failures()
+
+
+quiz_results = PersistentQuizResults()
+edx_failures = PersistentEdxFailures()
 
 open_edx = OpenEdXClient()
 
@@ -84,34 +117,39 @@ def _run_tool(job_id, command):
     based on the tool invoked to better reflect the typical output format.
     """
 
-    jobs[job_id]['status'] = 'running'
+    update_job(job_id, status='running')
+    status = 'completed'
+    output = ''
+    output_file = None
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
+        output = result.stdout
+
+        # Persist full output to disk for instructor review
+        log_dir = '/var/log/trainee'
+        os.makedirs(log_dir, exist_ok=True)
+        job = get_job(job_id) or {}
+        tool = job.get('tool', 'tool')
+        ext = 'html' if tool in {'zap', 'openvas'} else 'txt'
+        file_path = os.path.join(log_dir, f'{tool}_{job_id}.{ext}')
+        try:
+            with open(file_path, 'w', encoding='utf-8') as fh:
+                fh.write(result.stdout)
+            output_file = file_path
+        except OSError:
+            # Failure to persist the file should not mark the job as failed
+            output_file = None
     except FileNotFoundError as exc:  # tool missing
-        jobs[job_id]['status'] = 'failed'
-        jobs[job_id]['output'] = str(exc)
-        return
+        status = 'failed'
+        output = str(exc)
     except subprocess.CalledProcessError as exc:  # execution error
-        jobs[job_id]['status'] = 'failed'
-        jobs[job_id]['output'] = exc.stderr
-        return
-
-    jobs[job_id]['status'] = 'completed'
-    jobs[job_id]['output'] = result.stdout
-
-    # Persist full output to disk for instructor review
-    log_dir = '/var/log/trainee'
-    os.makedirs(log_dir, exist_ok=True)
-    tool = jobs[job_id]['tool']
-    ext = 'html' if tool in {'zap', 'openvas'} else 'txt'
-    file_path = os.path.join(log_dir, f'{tool}_{job_id}.{ext}')
-    try:
-        with open(file_path, 'w', encoding='utf-8') as fh:
-            fh.write(result.stdout)
-        jobs[job_id]['output_file'] = file_path
-    except OSError:
-        # Failure to persist the file should not mark the job as failed
-        pass
+        status = 'failed'
+        output = exc.stderr or exc.stdout or str(exc)
+    except Exception as exc:  # pragma: no cover - safety net for thread failures
+        status = 'failed'
+        output = str(exc)
+    finally:
+        update_job(job_id, status=status, output=output, output_file=output_file)
 
 
 def _validate_tool(command):
@@ -323,7 +361,7 @@ def update_progress():
     course_id = data.get('course_id')
     username = data.get('username') or token_username(token)
     value = data.get('progress')
-    progress[(course_id, username)] = value
+    upsert_progress(course_id, username, value)
     return jsonify({'status': 'updated'})
 
 
@@ -335,7 +373,7 @@ def get_progress():
         return jsonify({'error': 'unauthorized'}), 403
     course_id = request.args.get('course_id')
     username = request.args.get('username') or token_username(token)
-    value = progress.get((course_id, username), 0)
+    value = load_progress(course_id, username, 0)
     return jsonify({'progress': value})
 
 
@@ -377,7 +415,7 @@ def post_results():
     quiz = quiz_results.get((course_id, username))
     if quiz:
         metrics['quiz_score'] = quiz.get('score', 0)
-    progress[(course_id, username)] = metrics.get('score', score)
+    upsert_progress(course_id, username, metrics.get('score', score))
     ok_progress, message_progress = open_edx.update_progress(username, course_id, metrics)
     ok_grade, message_grade = open_edx.push_grade_lms(
         username, course_id, metrics.get('score', score)
@@ -414,11 +452,12 @@ def post_results():
 @require_role('instructor', 'admin')
 def get_edx_failures():
     user = g.current_user
+    failures = edx_failures.all()
     if user['role'] == 'admin':
-        return jsonify({'failures': edx_failures})
+        return jsonify({'failures': failures})
     visible = [
         failure
-        for failure in edx_failures
+        for failure in failures
         if courses.get(failure.get('course_id'), {}).get('instructor') == user['username']
     ]
     return jsonify({'failures': visible})
@@ -452,11 +491,11 @@ def launch_tool():
         return jsonify({'error': message}), 500
 
     job_id = str(uuid.uuid4())
-    jobs[job_id] = {'status': 'pending', 'tool': tool}
+    create_job(job_id, tool, status='pending')
     thread = threading.Thread(target=_run_tool, args=(job_id, command), daemon=True)
     thread.start()
 
-    return jsonify({'job_id': job_id, 'status': jobs[job_id]['status']})
+    return jsonify({'job_id': job_id, 'status': 'pending'})
 
 
 @app.route('/launch_tool/<job_id>', methods=['GET'])
@@ -466,7 +505,7 @@ def launch_tool_status(job_id):
     if not user:
         return jsonify({'error': 'unauthorized'}), 403
 
-    job = jobs.get(job_id)
+    job = get_job(job_id)
     if not job:
         return jsonify({'error': 'not found'}), 404
 
