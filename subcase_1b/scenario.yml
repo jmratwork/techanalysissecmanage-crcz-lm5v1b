@@ -8,7 +8,7 @@ metadata:
   difficulty: "medium"
   created: "2024-01-01"
 network:
-  name: "training_net"
+  name: "training-net"
   subnet: "10.10.0.0/24"
   gateway: "10.10.0.1"
 playbook: "ansible/playbook.yml"
