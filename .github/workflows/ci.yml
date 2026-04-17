@@ -15,8 +15,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Install yamllint
-        run: pip install yamllint
+      - name: Install CI dependencies
+        run: pip install -r requirements-ci.txt
       - name: Run yamllint
         run: yamllint .
 
@@ -30,8 +30,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Install ansible tooling
-        run: pip install ansible ansible-lint
+      - name: Install CI dependencies
+        run: pip install -r requirements-ci.txt
       - name: Run ansible-lint on provisioning/
         run: ansible-lint provisioning/
 
@@ -45,8 +45,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Install ansible
-        run: pip install ansible
+      - name: Install CI dependencies
+        run: pip install -r requirements-ci.txt
       - name: Run syntax check
         run: ansible-playbook --syntax-check -i provisioning/inventory.ini provisioning/playbook.yml
 
@@ -60,7 +60,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Install test dependencies
-        run: pip install pytest requests
+      - name: Install CI dependencies
+        run: pip install -r requirements-ci.txt
       - name: Run pytest
-        run: PYTHONPATH=. pytest tests/ soc_alerts/tests/
+        run: PYTHONPATH=. pytest tests/ soc_alerts/tests/ subcase_1b/training_platform/tests/
+
+  security-basic:
+    name: basic security analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install CI dependencies
+        run: pip install -r requirements-ci.txt
+      - name: Run bandit on training platform
+        run: bandit -r subcase_1b/training_platform/*.py --exit-zero
