@@ -1,7 +1,3 @@
-Flask
-requests
-PyJWT
-Jinja2
-PyYAML
-
-bcrypt
+# Keep this file aligned with the global dependency contract.
+# It intentionally delegates to the root requirements to avoid drift.
+-r ../../requirements.txt

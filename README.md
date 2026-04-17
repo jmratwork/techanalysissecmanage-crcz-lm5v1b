@@ -11,6 +11,25 @@ This repository provides complete, ready‑to‑deploy instructions for CyberRan
 - The provided startup scripts rely on `systemctl`. If your environment lacks systemd, set `DIRECT_START=1` to attempt starting services with legacy `service` commands or direct scripts.
 - Prepare required environment variables such as `LTI_TOOL_PRIVATE_KEY` and `OPENEDX_URL` as described in [docs/env_variables.md](docs/env_variables.md).
 
+
+## Instalación de dependencias (contrato único)
+
+Este repositorio define un **contrato global único** de dependencias Python en la raíz:
+
+- Runtime: `requirements.txt`
+- Desarrollo/tests: `requirements-dev.txt`
+
+Instalación recomendada:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements-dev.txt
+```
+
+`subcase_1b/training_platform/requirements.txt` queda como wrapper que referencia el contrato global para evitar drift entre entornos.
+
 ## Deployment on CRCZ
 
 See [deployment manual](docs/deployment_manual.md) for detailed steps including VM preparation, service orchestration, teardown, and environment reset.
