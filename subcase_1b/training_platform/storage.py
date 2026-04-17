@@ -39,6 +39,9 @@ def init_schema():
             token TEXT PRIMARY KEY,
             username TEXT NOT NULL,
             created_at REAL NOT NULL,
+            issued_at REAL NOT NULL,
+            expires_at REAL NOT NULL,
+            revoked_at REAL,
             FOREIGN KEY(username) REFERENCES users(username)
         )
         """,
@@ -92,6 +95,29 @@ def init_schema():
         for stmt in statements:
             conn.execute(stmt)
 
+        # Backward-compatible migrations for existing databases created before
+        # session metadata was introduced.
+        session_columns = {
+            row['name']
+            for row in conn.execute("PRAGMA table_info(sessions)").fetchall()
+        }
+        if 'issued_at' not in session_columns:
+            conn.execute('ALTER TABLE sessions ADD COLUMN issued_at REAL')
+        if 'expires_at' not in session_columns:
+            conn.execute('ALTER TABLE sessions ADD COLUMN expires_at REAL')
+        if 'revoked_at' not in session_columns:
+            conn.execute('ALTER TABLE sessions ADD COLUMN revoked_at REAL')
+
+        now = time.time()
+        conn.execute(
+            '''
+            UPDATE sessions
+            SET issued_at = COALESCE(issued_at, created_at),
+                expires_at = COALESCE(expires_at, created_at + 3600)
+            WHERE issued_at IS NULL OR expires_at IS NULL
+            ''',
+        )
+
 
 def get_user(username):
     with _connect() as conn:
@@ -110,18 +136,35 @@ def create_user(username, password, role='trainee'):
         )
 
 
-def create_session(token, username):
+def create_session(token, username, issued_at, expires_at):
     with _connect() as conn:
         conn.execute(
-            'INSERT INTO sessions(token, username, created_at) VALUES (?, ?, ?)',
-            (token, username, time.time()),
+            '''
+            INSERT INTO sessions(token, username, created_at, issued_at, expires_at, revoked_at)
+            VALUES (?, ?, ?, ?, ?, NULL)
+            ''',
+            (token, username, issued_at, issued_at, expires_at),
         )
 
 
-def get_username_by_token(token):
+def get_session_by_token(token):
     with _connect() as conn:
         row = conn.execute(
-            'SELECT username FROM sessions WHERE token = ?',
+            '''
+            SELECT token, username, issued_at, expires_at, revoked_at
+            FROM sessions
+            WHERE token = ?
+            ''',
             (token,),
         ).fetchone()
-    return row['username'] if row else None
+    return dict(row) if row else None
+
+
+def revoke_session(token, revoked_at=None):
+    revoked_at = revoked_at if revoked_at is not None else time.time()
+    with _connect() as conn:
+        result = conn.execute(
+            'UPDATE sessions SET revoked_at = ? WHERE token = ? AND revoked_at IS NULL',
+            (revoked_at, token),
+        )
+    return result.rowcount > 0
