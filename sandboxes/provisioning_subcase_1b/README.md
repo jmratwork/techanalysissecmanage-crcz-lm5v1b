@@ -26,6 +26,11 @@ Para evitar flujos competidores o placeholders engañosos, este árbol no mantie
 instrucciones de instalación manual. La única referencia operativa válida para aprovisionamiento es
 `provisioning/README.md`.
 
+
+> Los scripts `build_training_platform.sh`, `build_trainee_workstation.sh` y
+> `download_offline_artifacts.sh` son utilidades de empaquetado/offline image prep.
+> No sustituyen el flujo canónico de provisioning con `provisioning/playbook.yml`.
+
 ## Trainee workstation tool versions
 
 The `build_trainee_workstation.sh` script installs pre-downloaded packages for the trainee

@@ -20,15 +20,33 @@ flowchart LR
     C --> D[Actualización Open edX]
 ```
 
-## Usage
+## Canonical provisioning flow (single source of truth)
 
-Run the startup scripts to deploy the exercise:
+Use only the canonical provisioning entrypoint from repository root:
 
 ```bash
-sudo subcase_1b/scripts/cyber_range_start.sh          # initialize Cyber Range
-sudo subcase_1b/scripts/training_platform_start.sh     # set up course content
-sudo subcase_1b/scripts/lab_runner.sh --target 10.10.0.4      # run approved tool profiles
+ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
 ```
+
+For focused operations, use `--limit` against canonical host/group names
+(e.g. `--limit training_platform`, `--limit subcase_1b`).
+
+## Compatibility helpers (non-canonical)
+
+Scripts under `subcase_1b/scripts/` are compatibility/lab helpers and are **not**
+a second provisioning implementation.
+
+Examples:
+
+```bash
+sudo subcase_1b/scripts/cyber_range_start.sh
+sudo subcase_1b/scripts/training_platform_start.sh
+sudo subcase_1b/scripts/lab_runner.sh --target 10.10.0.4
+```
+
+Use them for local lab orchestration or demos only. Functional provisioning
+changes must be implemented in `provisioning/roles/**` and executed through the
+canonical playbook.
 
 The training platform records course creation in `/var/log/training_platform/courses.log`. Lab run results are written to `/var/log/trainee/lab_runner.log`, and the Cyber Range initialization log is at `/var/log/cyber_range/launch.log`.
 
@@ -44,12 +62,14 @@ The helper gathers available logs from `/var/log/trainee/`, `/var/log/training_p
 
 ## Virtualization
 
-The cyber range is provisioned using Docker Compose. The `scripts/cyber_range_start.sh` helper launches or tears down the containerized environment:
+The cyber range helper `scripts/cyber_range_start.sh` can launch or tear down a containerized lab with Docker Compose:
 
 ```bash
-sudo subcase_1b/scripts/cyber_range_start.sh       # start all containers
-sudo subcase_1b/scripts/cyber_range_start.sh --down # stop and remove containers
+sudo subcase_1b/scripts/cyber_range_start.sh       # start helper stack
+sudo subcase_1b/scripts/cyber_range_start.sh --down # stop and remove helper stack
 ```
+
+This is a compatibility/lab runtime helper. It does not replace canonical Ansible provisioning.
 
 The accompanying `docker-compose.yml` file defines services such as a vulnerable DVWA web server, a Kali-based workstation, and the training platform.
 
