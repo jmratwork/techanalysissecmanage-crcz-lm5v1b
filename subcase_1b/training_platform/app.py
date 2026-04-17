@@ -5,7 +5,8 @@ import threading
 import subprocess
 import tempfile
 import shutil
-from flask import Flask, request, jsonify
+from functools import wraps
+from flask import Flask, request, jsonify, g
 
 import phishing_quiz
 from open_edx_client import OpenEdXClient
@@ -159,6 +160,68 @@ def token_username(token):
     return session['username'] if session else None
 
 
+def _extract_token():
+    if request.method == 'GET':
+        return request.args.get('token')
+    data = request.get_json(silent=True) or {}
+    return data.get('token')
+
+
+def require_auth(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        token = _extract_token()
+        user = authenticate(token)
+        if not user:
+            return jsonify({'error': 'unauthorized'}), 403
+        g.current_user = user
+        g.auth_token = token
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+def require_role(*roles):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            user = getattr(g, 'current_user', None)
+            if not user or user.get('role') not in roles:
+                return jsonify({'error': 'unauthorized'}), 403
+            return fn(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def _is_elevated(user):
+    return user.get('role') in {'instructor', 'admin'}
+
+
+def _resolve_username(payload, user):
+    requested_username = payload.get('username')
+    authenticated_username = user['username']
+    if requested_username and requested_username != authenticated_username and not _is_elevated(user):
+        return None, 'username override not allowed'
+    return requested_username or authenticated_username, None
+
+
+def _validate_course_ownership(course_id, user, *, instructor_owned=False):
+    if not course_id:
+        return False, 'course_id required', 400
+    course = courses.get(course_id)
+    if not course:
+        return False, 'course not found', 404
+    if user.get('role') == 'admin':
+        return True, None, None
+    if instructor_owned and (
+        user.get('role') != 'instructor' or course.get('instructor') != user['username']
+    ):
+        return False, 'forbidden course ownership', 403
+    return True, None, None
+
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json(force=True)
@@ -209,19 +272,18 @@ def logout():
 
 
 @app.route('/courses', methods=['POST'])
+@require_auth
+@require_role('instructor', 'admin')
 def create_course():
     data = request.get_json(force=True)
-    token = data.get('token')
-    user = authenticate(token)
-    if not user or user['role'] != 'instructor':
-        return jsonify({'error': 'unauthorized'}), 403
+    user = g.current_user
     title = data.get('title')
     content = data.get('content', '')
     course_id = str(uuid.uuid4())
     courses[course_id] = {
         'title': title,
         'content': content,
-        'instructor': token_username(token)
+        'instructor': user['username']
     }
     return jsonify({'course_id': course_id})
 
@@ -236,14 +298,16 @@ def list_courses():
 
 
 @app.route('/invites', methods=['POST'])
+@require_auth
+@require_role('instructor', 'admin')
 def create_invite():
     data = request.get_json(force=True)
-    token = data.get('token')
-    user = authenticate(token)
-    if not user or user['role'] != 'instructor':
-        return jsonify({'error': 'unauthorized'}), 403
+    user = g.current_user
     course_id = data.get('course_id')
     email = data.get('email')
+    ok, message, status = _validate_course_ownership(course_id, user, instructor_owned=True)
+    if not ok:
+        return jsonify({'error': message}), status
     code = str(uuid.uuid4())
     invites[code] = {'course_id': course_id, 'email': email}
     return jsonify({'invite_code': code})
@@ -276,14 +340,21 @@ def get_progress():
 
 
 @app.route('/results', methods=['POST'])
+@require_auth
 def post_results():
     data = request.get_json(force=True)
-    token = data.get('token')
-    user = authenticate(token)
-    if not user:
-        return jsonify({'error': 'unauthorized'}), 403
+    user = g.current_user
     course_id = data.get('course_id')
-    username = data.get('username') or token_username(token)
+    ok, message, status = _validate_course_ownership(course_id, user)
+    if not ok:
+        return jsonify({'error': message}), status
+    if _is_elevated(user):
+        ok, message, status = _validate_course_ownership(course_id, user, instructor_owned=True)
+        if not ok:
+            return jsonify({'error': message}), status
+    username, username_error = _resolve_username(data, user)
+    if username_error:
+        return jsonify({'error': username_error}), 403
     start = data.get('start_time')
     end = data.get('end_time')
     score = data.get('score', 0)
@@ -339,21 +410,37 @@ def post_results():
 
 
 @app.route('/edx_failures', methods=['GET'])
+@require_auth
+@require_role('instructor', 'admin')
 def get_edx_failures():
-    token = request.args.get('token')
-    user = authenticate(token)
-    if not user or user.get('role') != 'instructor':
-        return jsonify({'error': 'unauthorized'}), 403
-    return jsonify({'failures': edx_failures})
+    user = g.current_user
+    if user['role'] == 'admin':
+        return jsonify({'failures': edx_failures})
+    visible = [
+        failure
+        for failure in edx_failures
+        if courses.get(failure.get('course_id'), {}).get('instructor') == user['username']
+    ]
+    return jsonify({'failures': visible})
 
 
 @app.route('/launch_tool', methods=['POST'])
+@require_auth
 def launch_tool():
     data = request.get_json(force=True)
-    token = data.get('token')
-    user = authenticate(token)
-    if not user:
-        return jsonify({'error': 'unauthorized'}), 403
+    user = g.current_user
+    course_id = data.get('course_id')
+    if course_id:
+        ok, message, status = _validate_course_ownership(course_id, user)
+        if not ok:
+            return jsonify({'error': message}), status
+        if _is_elevated(user):
+            ok, message, status = _validate_course_ownership(course_id, user, instructor_owned=True)
+            if not ok:
+                return jsonify({'error': message}), status
+    _, username_error = _resolve_username(data, user)
+    if username_error:
+        return jsonify({'error': username_error}), 403
 
     tool = data.get('tool', '').lower()
     command = COMMANDS.get(tool)
@@ -387,6 +474,7 @@ def launch_tool_status(job_id):
 
 
 @app.route('/kypo/launch', methods=['POST'])
+@require_auth
 def kypo_launch():
     """Generate an LTI launch URL for a KYPO lab.
 
@@ -397,12 +485,24 @@ def kypo_launch():
     """
 
     data = request.get_json(force=True)
-    token = data.get('token')
+    token = g.auth_token
     lab_id = data.get('lab_id')
+    user = g.current_user
+    course_id = data.get('course_id')
+    if course_id:
+        ok, message, status = _validate_course_ownership(course_id, user)
+        if not ok:
+            return jsonify({'error': message}), status
+        if _is_elevated(user):
+            ok, message, status = _validate_course_ownership(course_id, user, instructor_owned=True)
+            if not ok:
+                return jsonify({'error': message}), status
+    _, username_error = _resolve_username(data, user)
+    if username_error:
+        return jsonify({'error': username_error}), 403
 
-    user = authenticate(token)
-    if not user or not lab_id:
-        return jsonify({'error': 'unauthorized'}), 403
+    if not lab_id:
+        return jsonify({'error': 'lab_id required'}), 400
 
     username = token_username(token)
     try:
