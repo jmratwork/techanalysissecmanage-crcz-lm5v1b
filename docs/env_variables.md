@@ -19,6 +19,8 @@ Certain scripts in this repository rely on environment variables for authenticat
 | `OPENVAS_TARGET_HOST` | Host or subnet passed into OpenVAS scans (default `KYPO_SUBNET`). |
 | `MISP_API_KEY` | API key used to authenticate to MISP when fetching or pushing CTI data. The startup scripts mask this value in logs and console output to avoid leaking it. |
 | `MISP_URL` | Base URL of the MISP instance (default `http://localhost:8443`). |
+| `IRIS_URL` | Base URL of the IRIS case management API used by automation scripts. |
+| `IRIS_API_KEY` | API key used to authenticate requests against IRIS. |
 
 Example setup:
 

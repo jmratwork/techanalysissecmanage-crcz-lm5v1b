@@ -26,7 +26,12 @@ Ejecuta siempre desde la raíz del repositorio y sigue este orden:
    cp provisioning/group_vars/subcase_1b.example.yml provisioning/group_vars/subcase_1b.yml
    ```
 2. **Rellenar variables obligatorias** en `all.yml` y `subcase_1b.yml` (imágenes, tags, credenciales y demás placeholders `__REQUIRED_*__`).
-3. **Ejecutar el playbook**:
+3. **Preflight obligatorio de integraciones externas**:
+   ```bash
+   python scripts/preflight_integrations.py
+   ```
+   Este paso valida variables obligatorias definidas en `docs/env_variables.md`, detecta placeholders `__REQUIRED_*__` y debe devolver `LISTO` antes del despliegue.
+4. **Ejecutar el playbook**:
    ```bash
    ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
    ```
