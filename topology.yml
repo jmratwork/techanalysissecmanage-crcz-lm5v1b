@@ -4,7 +4,7 @@ name: subcase-1b-topology
 hosts:
   - name: training-platform
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
@@ -16,44 +16,44 @@ hosts:
 
   - name: cyber-range
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
   - name: randomization-platform
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
   - name: bips
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
   - name: ng-siem
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
   - name: cicms
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
   - name: ng-soar
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.medium
 
 routers:
   - name: router
     base_box:
-      image: debian-11
+      image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.small
 

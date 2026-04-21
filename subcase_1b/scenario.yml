@@ -14,7 +14,7 @@ network:
 playbook: "ansible/playbook.yml"
 nodes:
   training_platform:
-    image: "debian-11"
+    image: "debian-12-x86_64"
     role: "instructor"
     services:
       - "Course Management"
@@ -45,7 +45,7 @@ nodes:
       - path: "scripts/cyber_range_start.sh"
         args: "--vuln-profile baseline"
   randomization_platform:
-    image: "debian-11"
+    image: "debian-12-x86_64"
     role: "randomization"
     services:
       - "Randomization Evaluation"
@@ -55,7 +55,7 @@ nodes:
     startup_scripts:
       - path: "scripts/randomization_platform_start.sh"
   bips:
-    image: "debian-11"
+    image: "debian-12-x86_64"
     role: "security"
     services:
       - "Behavioral IPS"
@@ -65,7 +65,7 @@ nodes:
     startup_scripts:
       - path: "scripts/bips_start.sh"
   ng_siem:
-    image: "debian-11"
+    image: "debian-12-x86_64"
     role: "siem"
     services:
       - "Next-Gen SIEM"
@@ -75,7 +75,7 @@ nodes:
     startup_scripts:
       - path: "scripts/ng_siem_start.sh"
   cicms:
-    image: "debian-11"
+    image: "debian-12-x86_64"
     role: "incident_management"
     services:
       - "Cyber Incident & Case Management"
@@ -85,7 +85,7 @@ nodes:
     startup_scripts:
       - path: "scripts/cicms_start.sh"
   ng_soar:
-    image: "debian-11"
+    image: "debian-12-x86_64"
     role: "soc"
     services:
       - "Next-Gen SOAR"
