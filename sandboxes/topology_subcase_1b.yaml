@@ -6,7 +6,7 @@
 name: "subcase-1b-topology"
 hosts:
   training-platform:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -26,7 +26,7 @@ hosts:
       - name: ssh
         port: 22
   cyber-range:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -37,7 +37,7 @@ hosts:
       - name: dvwa
         port: 8000
   randomization-platform:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -48,7 +48,7 @@ hosts:
       - name: randomization-eval
         port: 8500
   bips:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -59,7 +59,7 @@ hosts:
       - name: bips
         port: 8600
   ng-siem:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -70,7 +70,7 @@ hosts:
       - name: siem
         port: 8700
   cicms:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -81,7 +81,7 @@ hosts:
       - name: incident-mgmt
         port: 8800
   ng-soar:
-    image: debian-11
+    image: debian-12-x86_64
     flavor: medium
     interfaces:
       - network: training-net
@@ -101,7 +101,7 @@ networks:
   training-net:
     prefix: 10.10.0.0/24
 base_box:
-  image: debian-11
+  image: debian-12-x86_64
   users:
     - username: kypo
       password: kypo
