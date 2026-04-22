@@ -100,6 +100,10 @@ networks:
   # NOTE: Keep this network key in kebab-case for KYPO validation.
   training-net:
     prefix: 10.10.0.0/24
+    gateway_ip: 10.10.0.1
+    allocation_pool:
+      start: 10.10.0.20
+      end: 10.10.0.254
 base_box:
   image: debian-12-x86_64
   users:
