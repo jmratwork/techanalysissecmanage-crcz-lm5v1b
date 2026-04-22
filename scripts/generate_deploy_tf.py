@@ -28,7 +28,7 @@ def parse_topology(path: Path) -> tuple[list[dict], OrderedDict[str, str], dict]
         "cidr": "10.10.0.0/24",
         "gateway_ip": "10.10.0.1",
         "allocation_pool_start": "10.10.0.20",
-        "allocation_pool_end": "10.10.0.254",
+        "allocation_pool_end": "10.10.0.199",
     }
 
     if isinstance(data.get("hosts"), list):
@@ -95,16 +95,15 @@ def render(topology_file: Path) -> str:
 
     # Dedicated fixed-IP ports for training-net hosts.
     for host, ip in fixed_ips.items():
-        if ip in {f"10.10.0.{n}" for n in range(2, 10)}:
-            res = normalize_name(host)
-            lines.append(f'resource "openstack_networking_port_v2" "{res}_training_net" {{')
-            lines.append(f'  name       = "{host}-training-net-port"')
-            lines.append('  network_id = openstack_networking_network_v2.training_net.id')
-            lines.append('  fixed_ip {')
-            lines.append(f'    ip_address = "{ip}"')
-            lines.append('  }')
-            lines.append('}')
-            lines.append('')
+        res = normalize_name(host)
+        lines.append(f'resource "openstack_networking_port_v2" "{res}_training_net" {{')
+        lines.append(f'  name       = "{host}-training-net-port"')
+        lines.append('  network_id = openstack_networking_network_v2.training_net.id')
+        lines.append('  fixed_ip {')
+        lines.append(f'    ip_address = "{ip}"')
+        lines.append('  }')
+        lines.append('}')
+        lines.append('')
 
     for host in hosts:
         name = host["name"]
@@ -112,7 +111,7 @@ def render(topology_file: Path) -> str:
         lines.append(f'resource "openstack_compute_instance_v2" "{res}" {{')
         lines.append(f'  name = "{name}"')
         lines.append('')
-        if name in fixed_ips and fixed_ips[name] in {f"10.10.0.{n}" for n in range(2, 10)}:
+        if name in fixed_ips:
             lines.append('  network {')
             lines.append(f'    port = openstack_networking_port_v2.{res}_training_net.id')
             lines.append('  }')
