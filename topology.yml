@@ -60,10 +60,6 @@ routers:
 networks:
   - name: training-net
     cidr: 10.10.0.0/24
-    gateway_ip: 10.10.0.1
-    allocation_pool:
-      start: 10.10.0.20
-      end: 10.10.0.199
 
 net_mappings:
   - host: training-platform
