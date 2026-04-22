@@ -73,8 +73,30 @@ For systems without Internet access, pre-download required packages and modules 
    tofu apply
    ```
    The reconciliation script checks existing Neutron ports in `training-net` (`10.10.0.0/24`) for the target project and fails fast if static IPs reserved by this deployment (`10.10.0.1`, `10.10.0.2-10.10.0.9`) are already allocated by resources that are not currently tracked in OpenTofu state.
-4. **Operator recovery path for partial applies or stale ports**
-   - **Option A: import existing ports into state** when the ports are valid and should be managed by this stack:
+   For every `openstack_networking_port_v2` block with `fixed_ip`, verify the exact IP is free (or intentionally pre-created and imported) before applying:
+   ```bash
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.2
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.3
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.4
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.5
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.6
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.7
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.8
+   openstack port list --network training-net --fixed-ip ip-address=10.10.0.9
+   ```
+4. **Recovery workflow after a failed `tofu apply`**
+   1. **Refresh/list current state and OpenStack resources**
+      ```bash
+      tofu refresh
+      tofu state list
+      openstack server list --project <target-project-id>
+      openstack port list --project <target-project-id> --network training-net
+      openstack subnet list --project <target-project-id>
+      openstack router list --project <target-project-id>
+      ```
+      This gives you a side-by-side view of what OpenTofu tracks versus what exists in OpenStack after a partial apply.
+   2. **Reconcile unmanaged pre-created resources**
+      - **Option A: import existing ports into state** when the ports are valid and should be managed by this stack:
      ```bash
      tofu import openstack_networking_port_v2.training_platform_training_net <port-id-for-10.10.0.2>
      tofu import openstack_networking_port_v2.trainee_workstation_training_net <port-id-for-10.10.0.3>
@@ -85,12 +107,20 @@ For systems without Internet access, pre-download required packages and modules 
      tofu import openstack_networking_port_v2.cicms_training_net <port-id-for-10.10.0.8>
      tofu import openstack_networking_port_v2.ng_soar_training_net <port-id-for-10.10.0.9>
      ```
-   - **Option B: remove stale/orphaned ports** if they should not exist, then rerun:
+      - **Option B: remove stale/orphaned resources** (ports, instances, routers, etc.) if they should not exist:
      ```bash
      openstack port delete <stale-port-id> [<stale-port-id> ...]
-     OS_PROJECT_ID=<target-project-id> ./scripts/reconcile_training_net_ports.sh
-     tofu apply
      ```
+   3. **Re-run plan and confirm it is clean for existing infrastructure**
+      ```bash
+      OS_PROJECT_ID=<target-project-id> ./scripts/reconcile_training_net_ports.sh
+      tofu plan
+      ```
+      Confirm the plan does **not** propose creating resources that already exist (especially `openstack_networking_port_v2.*` fixed-IP ports at `10.10.0.2-10.10.0.9`).
+   4. **Re-apply only after plan is clean**
+      ```bash
+      tofu apply
+      ```
    This recovery flow prevents repeated `tofu apply` failures and makes partial-apply cleanup explicit and safe.
 
 ## Teardown
