@@ -58,6 +58,26 @@ Notas de coherencia:
 - `inventory.ini` uses `ansible_host=<hostname>` (resolution by name), so topology IP values ​​are not duplicated in the canonical inventory.
 - `soc_server` does not exist in the topology or canonical inventory of Subcase 1b.
 
+### Contrato de direccionamiento de `training-net`
+
+- Subred: `10.10.0.0/24`.
+- Gateway/router reservado: `10.10.0.1`.
+- IPs estáticas de servicios (sin DHCP): `10.10.0.2-10.10.0.9`.
+- Pool DHCP permitido para asignación dinámica: `10.10.0.20-10.10.0.254`.
+
+Este contrato debe mantenerse en:
+
+1. `topology.yml` y `sandboxes/topology_subcase_1b.yaml` (definición de red).
+2. `scripts/generate_deploy_tf.py` y `deploy.tf` regenerado (`openstack_networking_subnet_v2` con `allocation_pool`).
+
+Validación post-despliegue (OpenStack):
+
+```bash
+openstack port list --network training-net --device-owner network:dhcp -f value -c "Fixed IP Addresses"
+```
+
+Las IPs reportadas para puertos DHCP no deben pertenecer al bloque `10.10.0.1-10.10.0.19`.
+
 #### Verifiable coherence contract (source of truth)
 
 To consider the state **consistent** between topology, inventory and canonical playbook, these rules must be met simultaneously:

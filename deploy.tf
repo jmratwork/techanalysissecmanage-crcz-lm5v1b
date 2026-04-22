@@ -4,6 +4,18 @@ resource "openstack_networking_network_v2" "training_net" {
   name = "training-net"
 }
 
+resource "openstack_networking_subnet_v2" "training_net_subnet" {
+  name       = "training-net-subnet"
+  network_id = openstack_networking_network_v2.training_net.id
+  cidr       = "10.10.0.0/24"
+  gateway_ip = "10.10.0.1"
+  enable_dhcp = true
+  allocation_pool {
+    start = "10.10.0.20"
+    end   = "10.10.0.254"
+  }
+}
+
 resource "openstack_networking_port_v2" "training_platform_training_net" {
   name       = "training-platform-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
@@ -76,6 +88,7 @@ resource "openstack_compute_instance_v2" "training_platform" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.training_platform_training_net,
   ]
 }
@@ -88,6 +101,7 @@ resource "openstack_compute_instance_v2" "trainee_workstation" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.trainee_workstation_training_net,
   ]
 }
@@ -100,6 +114,7 @@ resource "openstack_compute_instance_v2" "cyber_range" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.cyber_range_training_net,
   ]
 }
@@ -112,6 +127,7 @@ resource "openstack_compute_instance_v2" "randomization_platform" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.randomization_platform_training_net,
   ]
 }
@@ -124,6 +140,7 @@ resource "openstack_compute_instance_v2" "bips" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.bips_training_net,
   ]
 }
@@ -136,6 +153,7 @@ resource "openstack_compute_instance_v2" "ng_siem" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.ng_siem_training_net,
   ]
 }
@@ -148,6 +166,7 @@ resource "openstack_compute_instance_v2" "cicms" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.cicms_training_net,
   ]
 }
@@ -160,6 +179,7 @@ resource "openstack_compute_instance_v2" "ng_soar" {
   }
 
   depends_on = [
+    openstack_networking_subnet_v2.training_net_subnet,
     openstack_networking_port_v2.ng_soar_training_net,
   ]
 }

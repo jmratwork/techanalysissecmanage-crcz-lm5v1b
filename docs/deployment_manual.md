@@ -42,6 +42,13 @@ For systems without Internet access, pre-download required packages and modules 
 ## Service Orchestration
 
 1. **Provision VMs** – Start VMs from the prepared images or snapshots and verify connectivity.
+2. **Apply network addressing contract before deployment**
+   - `training-net` subnet: `10.10.0.0/24`.
+   - Reserved infrastructure addresses:
+     - `10.10.0.1` → router/gateway.
+     - `10.10.0.2-10.10.0.9` → static service IPs.
+   - DHCP allocation pool for dynamic ports: `10.10.0.20-10.10.0.254`.
+   - This is implemented in topology definitions and in the generated `openstack_networking_subnet_v2`.
 2. **Run canonical provisioning**
    ```bash
    ansible-playbook -i provisioning/inventory.ini provisioning/playbook.yml
@@ -53,6 +60,11 @@ For systems without Internet access, pre-download required packages and modules 
 4. **Validate operation**
    - Confirm ports are listening and dashboards are reachable.
    - Run the scenario‑specific validation steps from the respective guide.
+   - Confirm DHCP does not consume infrastructure static IPs:
+     ```bash
+     openstack port list --network training-net --device-owner network:dhcp -f value -c "Fixed IP Addresses"
+     ```
+     The returned DHCP port IPs must be outside `10.10.0.1-10.10.0.19`.
 
 ## Teardown
 
