@@ -1,22 +1,32 @@
 ---
-- name: Ensure rsyslog is installed
+- name: Ensure rsyslog is installed (apt hosts only)
   package:
     name: rsyslog
     state: present
+  when: ansible_facts.pkg_mgr == 'apt'
 
-- name: Configure shell history and command logging
+- name: Configure shell history and command logging (apt hosts only)
   template:
     src: command_logging.sh.j2
     dest: /etc/profile.d/command_logging.sh
     owner: root
     group: root
     mode: '0644'
+  when: ansible_facts.pkg_mgr == 'apt'
 
-- name: Configure rsyslog for command logging
+- name: Configure rsyslog for command logging (apt hosts only)
   template:
     src: command_logging.conf.j2
     dest: /etc/rsyslog.d/command_logging.conf
     owner: root
     group: root
     mode: '0644'
+  when: ansible_facts.pkg_mgr == 'apt'
   notify: Restart rsyslog
+
+- name: Skip rsyslog-based command logging on non-apt hosts
+  debug:
+    msg: >-
+      Skipping rsyslog package and configuration because ansible_facts.pkg_mgr
+      is '{{ ansible_facts.pkg_mgr | default('unknown') }}' (requires apt).
+  when: ansible_facts.pkg_mgr != 'apt'
