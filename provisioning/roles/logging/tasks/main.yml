@@ -20,7 +20,7 @@
     )
   when:
     - logging_rsyslog_platform_supported
-    - 'rsyslog' not in (ansible_facts.packages | default({}))
+    - "'rsyslog' not in (ansible_facts.packages | default({}))"
 
 - name: Decide whether rsyslog backend is usable for command logging
   set_fact:
