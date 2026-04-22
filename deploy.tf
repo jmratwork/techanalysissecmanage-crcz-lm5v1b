@@ -19,9 +19,7 @@ resource "openstack_networking_subnet_v2" "training_net_subnet" {
 resource "openstack_networking_port_v2" "training_platform_training_net" {
   name       = "training-platform-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
-  fixed_ip {
-    ip_address = "10.10.0.200"
-  }
+  fixed_ip {}
 }
 
 resource "openstack_networking_port_v2" "trainee_workstation_training_net" {
