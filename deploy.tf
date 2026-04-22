@@ -12,7 +12,7 @@ resource "openstack_networking_subnet_v2" "training_net_subnet" {
   enable_dhcp = true
   allocation_pool {
     start = "10.10.0.20"
-    end   = "10.10.0.254"
+    end   = "10.10.0.199"
   }
 }
 
@@ -20,7 +20,7 @@ resource "openstack_networking_port_v2" "training_platform_training_net" {
   name       = "training-platform-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.2"
+    ip_address = "10.10.0.200"
   }
 }
 
@@ -28,7 +28,7 @@ resource "openstack_networking_port_v2" "trainee_workstation_training_net" {
   name       = "trainee-workstation-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.3"
+    ip_address = "10.10.0.201"
   }
 }
 
@@ -36,7 +36,7 @@ resource "openstack_networking_port_v2" "cyber_range_training_net" {
   name       = "cyber-range-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.4"
+    ip_address = "10.10.0.202"
   }
 }
 
@@ -44,7 +44,7 @@ resource "openstack_networking_port_v2" "randomization_platform_training_net" {
   name       = "randomization-platform-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.5"
+    ip_address = "10.10.0.203"
   }
 }
 
@@ -52,7 +52,7 @@ resource "openstack_networking_port_v2" "bips_training_net" {
   name       = "bips-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.6"
+    ip_address = "10.10.0.204"
   }
 }
 
@@ -60,7 +60,7 @@ resource "openstack_networking_port_v2" "ng_siem_training_net" {
   name       = "ng-siem-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.7"
+    ip_address = "10.10.0.205"
   }
 }
 
@@ -68,7 +68,7 @@ resource "openstack_networking_port_v2" "cicms_training_net" {
   name       = "cicms-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.8"
+    ip_address = "10.10.0.206"
   }
 }
 
@@ -76,7 +76,7 @@ resource "openstack_networking_port_v2" "ng_soar_training_net" {
   name       = "ng-soar-training-net-port"
   network_id = openstack_networking_network_v2.training_net.id
   fixed_ip {
-    ip_address = "10.10.0.9"
+    ip_address = "10.10.0.207"
   }
 }
 

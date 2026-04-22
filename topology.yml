@@ -63,33 +63,33 @@ networks:
     gateway_ip: 10.10.0.1
     allocation_pool:
       start: 10.10.0.20
-      end: 10.10.0.254
+      end: 10.10.0.199
 
 net_mappings:
   - host: training-platform
     network: training-net
-    ip: 10.10.0.2
+    ip: 10.10.0.200
   - host: trainee-workstation
     network: training-net
-    ip: 10.10.0.3
+    ip: 10.10.0.201
   - host: cyber-range
     network: training-net
-    ip: 10.10.0.4
+    ip: 10.10.0.202
   - host: randomization-platform
     network: training-net
-    ip: 10.10.0.5
+    ip: 10.10.0.203
   - host: bips
     network: training-net
-    ip: 10.10.0.6
+    ip: 10.10.0.204
   - host: ng-siem
     network: training-net
-    ip: 10.10.0.7
+    ip: 10.10.0.205
   - host: cicms
     network: training-net
-    ip: 10.10.0.8
+    ip: 10.10.0.206
   - host: ng-soar
     network: training-net
-    ip: 10.10.0.9
+    ip: 10.10.0.207
 
 router_mappings:
   - router: router

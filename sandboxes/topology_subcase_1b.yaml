@@ -10,7 +10,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.2
+        ip: 10.10.0.200
     services:
       - name: ssh
         port: 22
@@ -21,7 +21,7 @@ hosts:
     flavor: small
     interfaces:
       - network: training-net
-        ip: 10.10.0.3
+        ip: 10.10.0.201
     services:
       - name: ssh
         port: 22
@@ -30,7 +30,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.4
+        ip: 10.10.0.202
     services:
       - name: ssh
         port: 22
@@ -41,7 +41,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.5
+        ip: 10.10.0.203
     services:
       - name: ssh
         port: 22
@@ -52,7 +52,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.6
+        ip: 10.10.0.204
     services:
       - name: ssh
         port: 22
@@ -63,7 +63,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.7
+        ip: 10.10.0.205
     services:
       - name: ssh
         port: 22
@@ -74,7 +74,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.8
+        ip: 10.10.0.206
     services:
       - name: ssh
         port: 22
@@ -85,7 +85,7 @@ hosts:
     flavor: medium
     interfaces:
       - network: training-net
-        ip: 10.10.0.9
+        ip: 10.10.0.207
     services:
       - name: ssh
         port: 22
@@ -103,7 +103,7 @@ networks:
     gateway_ip: 10.10.0.1
     allocation_pool:
       start: 10.10.0.20
-      end: 10.10.0.254
+      end: 10.10.0.199
 base_box:
   image: debian-12-x86_64
   users:
