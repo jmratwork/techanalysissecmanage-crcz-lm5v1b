@@ -1,6 +1,12 @@
 ---
+- name: Gather service facts before rsyslog restart
+  service_facts:
+  when: logging_use_rsyslog | default(false)
+
 - name: Restart rsyslog
   service:
     name: rsyslog
     state: restarted
-  when: ansible_facts.pkg_mgr == 'apt'
+  when:
+    - logging_use_rsyslog | default(false)
+    - "'rsyslog.service' in (ansible_facts.services | default({})) or 'rsyslog' in (ansible_facts.services | default({}))"
