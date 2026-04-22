@@ -70,6 +70,20 @@ Este contrato debe mantenerse en:
 1. `topology.yml` y `sandboxes/topology_subcase_1b.yaml` (definición de red).
 2. `scripts/generate_deploy_tf.py` y `deploy.tf` regenerado (`openstack_networking_subnet_v2` con `allocation_pool`).
 
+Antes de `tofu apply`, ejecuta reconciliación de puertos para detectar conflictos de IP estática no gestionados por estado:
+
+```bash
+tofu init
+tofu plan
+OS_PROJECT_ID=<target-project-id> ./scripts/reconcile_training_net_ports.sh
+tofu apply
+```
+
+El script falla de forma explícita si `10.10.0.1` o `10.10.0.2-10.10.0.9` ya están asignadas por puertos existentes fuera del estado OpenTofu. En ese caso, recupera con una de estas opciones:
+
+- Importar puertos existentes al estado (`tofu import openstack_networking_port_v2.<resource_name> <port-id>`).
+- Eliminar puertos huérfanos/obsoletos (`openstack port delete <port-id>`) y reintentar.
+
 Validación post-despliegue (OpenStack):
 
 ```bash
