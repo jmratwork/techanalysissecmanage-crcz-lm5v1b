@@ -3,6 +3,12 @@
   package:
     name: rsyslog
     state: present
+  register: logging_rsyslog_install
+  failed_when: >-
+    (logging_rsyslog_install is failed) and
+    not (
+      (logging_rsyslog_install.msg | default('')) is regex('No package matching|has no installation candidate')
+    )
   when: ansible_facts.pkg_mgr == 'apt'
 
 - name: Configure shell history and command logging (apt hosts only)
@@ -14,6 +20,15 @@
     mode: '0644'
   when: ansible_facts.pkg_mgr == 'apt'
 
+- name: Warn when rsyslog package is unavailable (apt hosts only)
+  debug:
+    msg: >-
+      Skipping rsyslog-based command logging because the rsyslog package is not
+      available from apt on this host.
+  when:
+    - ansible_facts.pkg_mgr == 'apt'
+    - (logging_rsyslog_install.msg | default('')) is regex('No package matching|has no installation candidate')
+
 - name: Configure rsyslog for command logging (apt hosts only)
   template:
     src: command_logging.conf.j2
@@ -21,7 +36,10 @@
     owner: root
     group: root
     mode: '0644'
-  when: ansible_facts.pkg_mgr == 'apt'
+  when:
+    - ansible_facts.pkg_mgr == 'apt'
+    - not (logging_rsyslog_install.failed | default(false))
+    - not ((logging_rsyslog_install.msg | default('')) is regex('No package matching|has no installation candidate'))
   notify: Restart rsyslog
 
 - name: Skip rsyslog-based command logging on non-apt hosts
