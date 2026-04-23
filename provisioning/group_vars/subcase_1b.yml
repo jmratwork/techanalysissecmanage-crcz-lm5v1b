@@ -1,0 +1,63 @@
+# Copia este archivo a provisioning/group_vars/subcase_1b.yml antes de ejecutar.
+# Incluye ejemplos CYNET para modo deb y modo docker.
+
+# ================================
+# Training platform code strategy
+# ================================
+# Canonical CRCZ deployment for this repository:
+# - The code lives on the Ansible controller checkout.
+# - The VM does not pre-mount /opt/subcase_1b/training_platform.
+# Therefore this subcase should sync from repo by default.
+training_platform_source_mode: sync_from_repo
+training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
+# training_platform_app_dir: /opt/subcase_1b/training_platform
+#
+# Optional alternative for environments that already pre-provision code on the VM:
+# training_platform_source_mode: assert_present
+
+# ========================
+# Ejemplos CYNET modo deb
+# ========================
+# Uncomment and adjust only if you will use install_method: deb.
+# bips_install_method: deb
+# bips_repo_url: "https://packages.internal.example.com"
+# bips_package_path: "/bips/bips-agent.deb"
+# bips_package_checksum: "sha256:6c85a96bf3dc07d5dc4186d49ea6ab77f06e082d4c88b8221ebfbd820c2af78e"
+#
+# ng_siem_install_method: deb
+# ng_siem_repo_url: "https://packages.internal.example.com"
+# ng_siem_package_path: "/ng-siem/ng-siem-server.deb"
+# ng_siem_package_checksum: "sha256:9e41db92fb36071d913a9a353145ff878a39859ec7da026c11dbe059ddfc2341"
+#
+# cicms_install_method: deb
+# cicms_repo_url: "https://packages.internal.example.com"
+# cicms_package_path: "/cicms/cicms-server.deb"
+# cicms_package_checksum: "sha256:a2107255d861d36c8c0721417cdb878e59420853cae24e3cc92e92b8c249c174"
+#
+# ng_soar_install_method: deb
+# ng_soar_repo_url: "https://packages.internal.example.com"
+# ng_soar_package_path: "/ng-soar/ng-soar-platform.deb"
+# ng_soar_package_checksum: "sha256:4c2cdf184931911730af7cb085aaa83ce8b0c88b4b06f33047e561e0449c0afa"
+
+# ===========================
+# Ejemplos CYNET modo docker
+# ===========================
+bips_install_method: docker
+bips_docker_enabled: true
+bips_docker_image: registry.interna.example/bips
+bips_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+ng_siem_install_method: docker
+ng_siem_docker_enabled: true
+ng_siem_docker_image: registry.interna.example/ng-siem
+ng_siem_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+cicms_install_method: docker
+cicms_docker_enabled: true
+cicms_docker_image: registry.interna.example/cicms
+cicms_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+ng_soar_install_method: docker
+ng_soar_docker_enabled: true
+ng_soar_docker_image: registry.interna.example/ng-soar
+ng_soar_docker_tag: "__REQUIRED_DOCKER_TAG__"
