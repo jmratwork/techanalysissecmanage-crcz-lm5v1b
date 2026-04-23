@@ -15,6 +15,9 @@
     fail_msg: >-
       Invalid training_platform_source_mode: {{ training_platform_source_mode }}.
       Supported values: assert_present, sync_from_repo.
+      Canonical source for training_platform_source_mode is provisioning/group_vars/training-platform.yml.
+      Confirm inventory is provisioning/inventory.ini and check for higher-precedence overrides
+      (-e, host_vars, inventory-local group_vars).
 
 - name: Check training platform source directory on controller
   ansible.builtin.stat:
@@ -33,8 +36,10 @@
     fail_msg: >-
       training_platform_source_dir does not exist or is not a directory on the controller:
       {{ training_platform_source_dir }}.
-      In canonical Subcase 1b/CRCZ flow set this in provisioning/group_vars/subcase_1b.yml
-      and keep training_platform_source_mode=sync_from_repo.
+      Canonical source for training_platform_source_dir/training_platform_source_mode is
+      provisioning/group_vars/training-platform.yml.
+      Confirm inventory is provisioning/inventory.ini and check for higher-precedence overrides
+      (-e, host_vars, inventory-local group_vars).
       Use training_platform_source_mode=assert_present only when code is already present on the VM.
   when: training_platform_source_mode == 'sync_from_repo'
 
@@ -78,11 +83,12 @@
     fail_msg: >-
       training_platform_source_mode=assert_present expects existing code on the remote host,
       but {{ training_platform_app_dir }} does not exist.
-      If you deploy from a controller checkout (e.g. canonical CRCZ subcase_1b flow),
-      set training_platform_source_mode=sync_from_repo and verify training_platform_source_dir.
-      Canonical versioned override for Subcase 1b: provisioning/group_vars/training-platform.yml.
-      If your run still resolves assert_present, verify that inventory/group_vars loading is using
-      provisioning/inventory.ini and that no higher-precedence variable overrides this value.
+      If you deploy from a controller checkout, set training_platform_source_mode=sync_from_repo
+      and verify training_platform_source_dir.
+      Canonical source for training_platform_source_mode/training_platform_source_dir is
+      provisioning/group_vars/training-platform.yml.
+      Confirm inventory is provisioning/inventory.ini and check for higher-precedence overrides
+      (-e, host_vars, inventory-local group_vars).
   when: training_platform_source_mode == 'assert_present'
 
 - name: Assert training platform requirements file exists
@@ -95,7 +101,10 @@
       Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
       If code is not pre-provisioned on the remote host, use
       training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
-      Canonical Subcase 1b value is defined in provisioning/group_vars/training-platform.yml.
+      Canonical source for training_platform_source_mode/training_platform_source_dir is
+      provisioning/group_vars/training-platform.yml.
+      Confirm inventory is provisioning/inventory.ini and check for higher-precedence overrides
+      (-e, host_vars, inventory-local group_vars).
 
 - name: Check training platform application entrypoint
   ansible.builtin.stat:
@@ -112,7 +121,10 @@
       Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
       If code is not pre-provisioned on the remote host, use
       training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
-      Canonical Subcase 1b value is defined in provisioning/group_vars/training-platform.yml.
+      Canonical source for training_platform_source_mode/training_platform_source_dir is
+      provisioning/group_vars/training-platform.yml.
+      Confirm inventory is provisioning/inventory.ini and check for higher-precedence overrides
+      (-e, host_vars, inventory-local group_vars).
 
 - name: Assert Open edX integration variables
   ansible.builtin.assert:
