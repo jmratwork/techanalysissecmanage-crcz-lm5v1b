@@ -37,6 +37,17 @@
         )
       }}
 
+
+- name: Show rsyslog command logging backend status when enabled
+  debug:
+    msg: >-
+      Using rsyslog backend for command logging:
+      logging_use_rsyslog={{ logging_use_rsyslog | default(false) | bool }},
+      logging_rsyslog_platform_supported={{ logging_rsyslog_platform_supported | default(false) | bool }},
+      package_manager='{{ ansible_facts.pkg_mgr | default('unknown') }}',
+      rsyslog_installed={{ 'rsyslog' in (ansible_facts.packages | default({})) }}.
+  when: logging_use_rsyslog | default(false)
+
 - name: Configure shell history and command logging
   template:
     src: command_logging.sh.j2
