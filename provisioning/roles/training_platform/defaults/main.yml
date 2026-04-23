@@ -4,7 +4,9 @@
 # - sync_from_repo: sync code from the local repository (controller) to the remote host.
 # Note: canonical CRCZ subcase_1b flow should override this in group_vars with sync_from_repo.
 training_platform_source_mode: assert_present
-training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
+# Portable repo-relative default path on controller.
+# Use role_path instead of playbook_dir so wrapper entrypoints keep working.
+training_platform_source_dir: "{{ role_path }}/../../../subcase_1b/training_platform"
 training_platform_sync_delete: false
 
 training_platform_app_dir: /opt/subcase_1b/training_platform

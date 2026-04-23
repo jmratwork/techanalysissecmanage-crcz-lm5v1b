@@ -194,6 +194,10 @@ The `training_platform` role supports two explicit modes for code availability:
 
 Canonical CRCZ subcase_1b deployment for this repository should use `sync_from_repo` (see `provisioning/group_vars/subcase_1b.example.yml`), because the repository is checked out on the controller and is not pre-mounted at `/opt/subcase_1b/training_platform` inside the VM.
 
+`training_platform_source_dir` has a portable default based on `role_path`:
+`{{ role_path }}/../../../subcase_1b/training_platform`.
+This keeps the lookup repo-relative even if provisioning is launched through compatibility wrappers (for example `sandboxes/provisioning_subcase_1b/site.yml`).
+
 Use `assert_present` only when another process (golden image, external bootstrap, pre-sync job) has already installed the training platform code on the remote host.
 
 ## CYNET components in docker mode
