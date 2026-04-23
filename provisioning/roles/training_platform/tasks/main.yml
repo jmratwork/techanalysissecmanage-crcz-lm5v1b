@@ -33,7 +33,9 @@
     fail_msg: >-
       training_platform_source_dir does not exist or is not a directory on the controller:
       {{ training_platform_source_dir }}.
-      Fix the path or use training_platform_source_mode=assert_present.
+      In canonical Subcase 1b/CRCZ flow set this in provisioning/group_vars/subcase_1b.yml
+      and keep training_platform_source_mode=sync_from_repo.
+      Use training_platform_source_mode=assert_present only when code is already present on the VM.
   when: training_platform_source_mode == 'sync_from_repo'
 
 - name: Ensure training platform application directory exists on host
