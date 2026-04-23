@@ -7,8 +7,12 @@
 
 - hosts: training-platform
   become: true
-  # Canonical Subcase 1b source strategy is versioned in
-  # provisioning/group_vars/training-platform.yml
+  # Canonical source strategy declared inline so CRCZ/KYPO group_vars path
+  # resolution cannot fall back to the role default (assert_present).
+  # group_vars/training-platform.yml is kept for local/CLI runs.
+  vars:
+    training_platform_source_mode: sync_from_repo
+    training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
   roles:
     - training_platform
 
