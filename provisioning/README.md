@@ -189,10 +189,12 @@ Resumen operativo para provisioning:
 
 The `training_platform` role supports two explicit modes for code availability:
 
-- `training_platform_source_mode: assert_present` (default): Requires the code to already exist in `training_platform_app_dir` on the remote host.
+- `training_platform_source_mode: assert_present` (role default): Requires the code to already exist in `training_platform_app_dir` on the remote host.
 - `training_platform_source_mode: sync_from_repo`: synchronises `subcase_1b/training_platform` from the controller (`training_platform_source_dir`) to `training_platform_app_dir` before creating venv/systemd/nginx.
 
-Si tu entorno no monta previamente el repositorio en la VM, usa `sync_from_repo` para evitar un estado “aparentemente listo” pero no ejecutable.
+Canonical CRCZ subcase_1b deployment for this repository should use `sync_from_repo` (see `provisioning/group_vars/subcase_1b.example.yml`), because the repository is checked out on the controller and is not pre-mounted at `/opt/subcase_1b/training_platform` inside the VM.
+
+Use `assert_present` only when another process (golden image, external bootstrap, pre-sync job) has already installed the training platform code on the remote host.
 
 ## CYNET components in docker mode
 
