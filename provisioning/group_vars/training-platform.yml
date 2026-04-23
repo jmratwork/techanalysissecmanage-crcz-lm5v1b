@@ -1,0 +1,5 @@
+---
+# Canonical Subcase 1b default for this host group:
+# the training_platform code is synced from the controller checkout.
+training_platform_source_mode: sync_from_repo
+training_platform_source_dir: "{{ inventory_dir }}/../subcase_1b/training_platform"

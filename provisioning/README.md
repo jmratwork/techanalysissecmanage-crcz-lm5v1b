@@ -37,6 +37,8 @@ Always run from the root of the repository and follow this order:
    ```
 
 > Importante: antes de ejecutar en docker mode, deben existir los archivos reales `provisioning/group_vars/all.yml` y `provisioning/group_vars/subcase_1b.yml`.
+> El modo canónico de código para `training_platform` **no depende** de copiar esos examples:
+> queda versionado en `provisioning/group_vars/training-platform.yml`.
 
 ### Explicit consistency: topology ↔ inventory ↔ playbook
 
@@ -192,7 +194,8 @@ The `training_platform` role supports two explicit modes for code availability:
 - `training_platform_source_mode: assert_present` (role default): Requires the code to already exist in `training_platform_app_dir` on the remote host.
 - `training_platform_source_mode: sync_from_repo`: synchronises `subcase_1b/training_platform` from the controller (`training_platform_source_dir`) to `training_platform_app_dir` before creating venv/systemd/nginx.
 
-Canonical CRCZ subcase_1b deployment for this repository should use `sync_from_repo` (see `provisioning/group_vars/subcase_1b.example.yml`), because the repository is checked out on the controller and is not pre-mounted at `/opt/subcase_1b/training_platform` inside the VM.
+Canonical CRCZ subcase_1b deployment for this repository uses `sync_from_repo` via
+`provisioning/group_vars/training-platform.yml` (versioned), because the repository is checked out on the controller and is not pre-mounted at `/opt/subcase_1b/training_platform` inside the VM.
 
 `training_platform_source_dir` has a portable default based on `role_path`:
 `{{ role_path }}/../../../subcase_1b/training_platform`.

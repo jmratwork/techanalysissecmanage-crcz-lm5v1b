@@ -2,7 +2,8 @@
 # Code strategy for training_platform:
 # - assert_present (default): Requires that the code already exists on the remote host.
 # - sync_from_repo: sync code from the local repository (controller) to the remote host.
-# Note: canonical CRCZ subcase_1b flow should override this in group_vars with sync_from_repo.
+# Note: canonical CRCZ subcase_1b flow overrides this in
+# provisioning/group_vars/training-platform.yml with sync_from_repo.
 training_platform_source_mode: assert_present
 # Portable repo-relative default path on controller.
 # Use role_path instead of playbook_dir so wrapper entrypoints keep working.
