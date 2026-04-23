@@ -1,5 +1,7 @@
 # Copia este archivo a provisioning/group_vars/all.yml antes de ejecutar en docker mode.
 # Include global values ​​here that must be shared between groups/hosts.
+# Note: training_platform source mode/dir are defined in
+# provisioning/group_vars/training-platform.yml (canonical Subcase 1b behavior).
 
 # Example of external integration variables (illustrative placeholders):
 OPENEDX_URL: "https://openedx.example.local"

@@ -7,6 +7,8 @@
 
 - hosts: training-platform
   become: true
+  # Canonical Subcase 1b source strategy is versioned in
+  # provisioning/group_vars/training-platform.yml
   roles:
     - training_platform
 

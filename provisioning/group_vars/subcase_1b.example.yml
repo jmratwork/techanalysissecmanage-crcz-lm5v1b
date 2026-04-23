@@ -4,16 +4,15 @@
 # ================================
 # Training platform code strategy
 # ================================
-# Canonical CRCZ deployment for this repository:
-# - The code lives on the Ansible controller checkout.
-# - The VM does not pre-mount /opt/subcase_1b/training_platform.
-# Therefore this subcase should sync from repo by default.
-training_platform_source_mode: sync_from_repo
-training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
-# training_platform_app_dir: /opt/subcase_1b/training_platform
+# Canonical default for this repository is versioned in:
+# provisioning/group_vars/training-platform.yml
+# and sets:
+#   training_platform_source_mode: sync_from_repo
+#   training_platform_source_dir: "{{ inventory_dir }}/../subcase_1b/training_platform"
 #
-# Optional alternative for environments that already pre-provision code on the VM:
+# Override here only if your environment requires a different behavior, for example:
 # training_platform_source_mode: assert_present
+# training_platform_app_dir: /opt/subcase_1b/training_platform
 
 # ========================
 # Ejemplos CYNET modo deb

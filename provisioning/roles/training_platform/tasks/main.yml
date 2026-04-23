@@ -80,6 +80,9 @@
       but {{ training_platform_app_dir }} does not exist.
       If you deploy from a controller checkout (e.g. canonical CRCZ subcase_1b flow),
       set training_platform_source_mode=sync_from_repo and verify training_platform_source_dir.
+      Canonical versioned override for Subcase 1b: provisioning/group_vars/training-platform.yml.
+      If your run still resolves assert_present, verify that inventory/group_vars loading is using
+      provisioning/inventory.ini and that no higher-precedence variable overrides this value.
   when: training_platform_source_mode == 'assert_present'
 
 - name: Assert training platform requirements file exists
@@ -92,6 +95,7 @@
       Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
       If code is not pre-provisioned on the remote host, use
       training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
+      Canonical Subcase 1b value is defined in provisioning/group_vars/training-platform.yml.
 
 - name: Check training platform application entrypoint
   ansible.builtin.stat:
@@ -108,6 +112,7 @@
       Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
       If code is not pre-provisioned on the remote host, use
       training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
+      Canonical Subcase 1b value is defined in provisioning/group_vars/training-platform.yml.
 
 - name: Assert Open edX integration variables
   ansible.builtin.assert:

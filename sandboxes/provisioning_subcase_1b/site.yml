@@ -1,4 +1,6 @@
 ---
 # Wrapper playbook for backwards compatibility.
 # Canonical provisioning logic lives in ../../provisioning/playbook.yml.
+# Canonical training_platform source mode is defined in:
+# ../../provisioning/group_vars/training-platform.yml
 - import_playbook: ../../provisioning/playbook.yml
