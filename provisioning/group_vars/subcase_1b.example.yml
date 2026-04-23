@@ -4,13 +4,16 @@
 # ================================
 # Training platform code strategy
 # ================================
-# By default, the role requires pre-existing code on the remote host:
-# training_platform_source_mode: assert_present
+# Canonical CRCZ deployment for this repository:
+# - The code lives on the Ansible controller checkout.
+# - The VM does not pre-mount /opt/subcase_1b/training_platform.
+# Therefore this subcase should sync from repo by default.
+training_platform_source_mode: sync_from_repo
+training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
 # training_platform_app_dir: /opt/subcase_1b/training_platform
 #
-# Si no montas el repo en la VM, puedes sincronizar desde el controller:
-# training_platform_source_mode: sync_from_repo
-# training_platform_source_dir: "{{ playbook_dir }}/../subcase_1b/training_platform"
+# Optional alternative for environments that already pre-provision code on the VM:
+# training_platform_source_mode: assert_present
 
 # ========================
 # Ejemplos CYNET modo deb

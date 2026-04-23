@@ -62,6 +62,24 @@
     path: "{{ training_platform_requirements_file }}"
   register: training_platform_requirements
 
+- name: Check training platform application directory in assert_present mode
+  ansible.builtin.stat:
+    path: "{{ training_platform_app_dir }}"
+  register: training_platform_app_dir_stat
+  when: training_platform_source_mode == 'assert_present'
+
+- name: Assert training platform application directory exists in assert_present mode
+  ansible.builtin.assert:
+    that:
+      - training_platform_app_dir_stat.stat.exists
+      - training_platform_app_dir_stat.stat.isdir
+    fail_msg: >-
+      training_platform_source_mode=assert_present expects existing code on the remote host,
+      but {{ training_platform_app_dir }} does not exist.
+      If you deploy from a controller checkout (e.g. canonical CRCZ subcase_1b flow),
+      set training_platform_source_mode=sync_from_repo and verify training_platform_source_dir.
+  when: training_platform_source_mode == 'assert_present'
+
 - name: Assert training platform requirements file exists
   ansible.builtin.assert:
     that:
@@ -69,8 +87,9 @@
       - training_platform_requirements.stat.isreg
     fail_msg: >-
       requirements.txt no existe en {{ training_platform_requirements_file }}.
-      If the code does not exist on the remote host, use
-      training_platform_source_mode=sync_from_repo or adjust training_platform_app_dir.
+      Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
+      If code is not pre-provisioned on the remote host, use
+      training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
 
 - name: Check training platform application entrypoint
   ansible.builtin.stat:
@@ -84,8 +103,9 @@
       - training_platform_app.stat.isreg
     fail_msg: >-
       app.py no existe en {{ training_platform_entrypoint }}.
-      If the code does not exist on the remote host, use
-      training_platform_source_mode=sync_from_repo or adjust training_platform_app_dir.
+      Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
+      If code is not pre-provisioned on the remote host, use
+      training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
 
 - name: Assert Open edX integration variables
   ansible.builtin.assert:
