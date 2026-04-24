@@ -62,3 +62,37 @@ ng_soar_install_method: docker
 ng_soar_docker_enabled: true
 ng_soar_docker_image: registry.interna.example/ng-soar
 ng_soar_docker_tag: "__REQUIRED_DOCKER_TAG__"
+
+# =============================================
+# Modo SMB (distribución desde servidor NAS/SMB)
+# =============================================
+# Activa este modo cuando los bundles de despliegue se distribuyen desde un share SMB
+# en lugar de un registry Docker o repositorio deb interno.
+#
+# Paso 1 — habilitar herramientas SMB en el bootstrap del nodo (hosts CYNET):
+# common_bootstrap_install_smb_tools: true
+# common_bootstrap_smb_mount_enabled: true
+# common_bootstrap_smb_share: "//10.250.232.198/shared"
+# common_bootstrap_smb_mount_path: /mnt/smb_shared
+# common_bootstrap_smb_opts: "guest,vers=3.0"
+# common_bootstrap_smb_unmount_after: true   # desmontar tras el provisionamiento
+#
+# Paso 2 — autenticación Docker Hub (si las imágenes son privadas):
+# common_bootstrap_docker_hub_login: true
+# common_bootstrap_docker_hub_username: "myuser"
+# common_bootstrap_docker_hub_password: "__REQUIRED_DOCKER_HUB_TOKEN__"
+#
+# Paso 3 — desplegar CICMS/DFIR-IRIS desde bundle SMB:
+# cicms_install_method: smb
+# cicms_smb_mount_path: /mnt/smb_shared
+# cicms_smb_bundle_name: dfir-iris-custom.zip
+# cicms_smb_project_src: /opt/dfir-iris-custom
+# cicms_misp_url: "{{ MISP_URL }}"
+# cicms_misp_api_key: "{{ MISP_API_KEY }}"
+# cicms_misp_verify_cert: false
+#
+# Paso 4 — desplegar NG-SOAR desde compose yml en SMB:
+# ng_soar_install_method: smb
+# ng_soar_smb_mount_path: /mnt/smb_shared
+# ng_soar_smb_compose_name: NG-SOAR.yml
+# ng_soar_smb_project_src: /opt/NG-SOAR

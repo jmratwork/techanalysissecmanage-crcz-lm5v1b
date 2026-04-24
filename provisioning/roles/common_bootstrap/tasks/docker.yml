@@ -79,3 +79,12 @@
     groups: docker
     append: true
   loop: "{{ common_bootstrap_docker_users }}"
+
+- name: Authenticate with Docker Hub
+  community.docker.docker_login:
+    username: "{{ common_bootstrap_docker_hub_username }}"
+    password: "{{ common_bootstrap_docker_hub_password }}"
+  when:
+    - common_bootstrap_docker_hub_login | bool
+    - common_bootstrap_docker_hub_username | length > 0
+    - common_bootstrap_docker_hub_password | length > 0

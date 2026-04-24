@@ -32,3 +32,7 @@
 - name: Bootstrap Docker
   ansible.builtin.include_tasks: docker.yml
   when: common_bootstrap_install_docker | bool
+
+- name: Configure SMB tools and share
+  ansible.builtin.include_tasks: smb.yml
+  when: common_bootstrap_install_smb_tools | bool

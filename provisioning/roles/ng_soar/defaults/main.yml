@@ -47,3 +47,8 @@ ng_soar_docker_healthcheck_status:
 ng_soar_docker_healthcheck_validate_certs: false
 ng_soar_docker_healthcheck_retries: 10
 ng_soar_docker_healthcheck_delay: 5
+
+# SMB-based yml deployment (NG-SOAR compose file distributed from a shared storage server)
+ng_soar_smb_mount_path: /mnt/smb_shared
+ng_soar_smb_compose_name: NG-SOAR.yml
+ng_soar_smb_project_src: /opt/NG-SOAR
