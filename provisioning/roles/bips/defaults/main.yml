@@ -1,6 +1,6 @@
 ---
 bips_enabled: true
-bips_install_method: "{{ 'docker' if bips_docker_enabled else 'deb' }}"
+bips_install_method: deb
 
 bips_repo_url: ""
 bips_package_path: ""

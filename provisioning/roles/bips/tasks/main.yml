@@ -2,14 +2,21 @@
   when: bips_enabled | bool
   become: yes
   block:
-    - name: Validate BIPS installation parameters
+    - name: Assert BIPS install mode is explicit and consistent
       ansible.builtin.assert:
         that:
           - bips_install_method in ['deb', 'docker']
+          - (bips_install_method == 'docker') == (bips_docker_enabled | bool)
+        fail_msg: >-
+          Ambiguous BIPS install configuration. Define bips_install_method and bips_docker_enabled consistently in
+          group_vars/host_vars (for example: docker+true or deb+false).
+
+    - name: Validate BIPS installation parameters
+      ansible.builtin.assert:
+        that:
           - bips_install_method != 'deb' or bips_repo_url | length > 0
           - bips_install_method != 'deb' or bips_package_path | length > 0
           - bips_install_method != 'deb' or bips_package_checksum | length > 0
-          - bips_install_method != 'docker' or bips_docker_enabled | bool
           - bips_install_method != 'docker' or bips_docker_project_src | length > 0
         fail_msg: >-
           Invalid configuration for BIPS. If you will use deb, define bips_repo_url, bips_package_path and
