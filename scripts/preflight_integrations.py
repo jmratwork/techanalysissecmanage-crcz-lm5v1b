@@ -18,7 +18,7 @@ from typing import Dict, Iterable, List, Tuple
 ENV_DOC_PATH = Path("docs/env_variables.md")
 PLACEHOLDER_RE = re.compile(r"__REQUIRED_[A-Z0-9_]+__")
 TABLE_VAR_RE = re.compile(r"^\|\s*`([A-Z0-9_]+)`\s*\|\s*(.+?)\s*\|\s*$")
-YAML_KV_RE = re.compile(r"^\s*([A-Z0-9_]+)\s*:\s*(.*?)\s*$")
+YAML_KV_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*:\s*(.*?)\s*$")
 
 
 @dataclass(frozen=True)
@@ -110,6 +110,12 @@ def collect_sources(file_paths: Iterable[Path]) -> Dict[str, str]:
     return sourced
 
 
+def has_placeholder(value: str | None) -> bool:
+    if value is None:
+        return False
+    return PLACEHOLDER_RE.search(value.strip()) is not None
+
+
 def find_placeholders(values: Dict[str, str]) -> Dict[str, str]:
     placeholders: Dict[str, str] = {}
     for var, value in values.items():
@@ -153,19 +159,43 @@ def build_effective_values(required_vars: Iterable[str], file_values: Dict[str, 
 
 
 def resolve_default_var_files() -> List[Path]:
-    candidates = [
+    return [
         Path("provisioning/group_vars/all.yml"),
         Path("provisioning/group_vars/subcase_1b.yml"),
     ]
 
-    existing = [path for path in candidates if path.exists()]
-    if existing:
-        return existing
 
-    return [
-        Path("provisioning/group_vars/all.example.yml"),
-        Path("provisioning/group_vars/subcase_1b.example.yml"),
-    ]
+def validate_bips_values(values: Dict[str, str]) -> List[str]:
+    errors: List[str] = []
+    install_method = values.get("bips_install_method", "").strip().lower()
+
+    if install_method not in {"docker", "deb"}:
+        errors.append(
+            "bips_install_method debe ser 'docker' o 'deb' en provisioning/group_vars/subcase_1b.yml."
+        )
+        return errors
+
+    if install_method == "docker":
+        docker_enabled = values.get("bips_docker_enabled", "").strip().lower()
+        if docker_enabled != "true":
+            errors.append(
+                "Con bips_install_method: docker, define bips_docker_enabled: true."
+            )
+        for var in ("bips_docker_image", "bips_docker_tag"):
+            value = values.get(var)
+            if not is_set(value) or has_placeholder(value):
+                errors.append(
+                    f"Con bips_install_method: docker, define {var} con un valor real (sin placeholders __REQUIRED_*__)."
+                )
+        return errors
+
+    for var in ("bips_repo_url", "bips_package_path", "bips_package_checksum"):
+        value = values.get(var)
+        if not is_set(value) or has_placeholder(value):
+            errors.append(
+                f"Con bips_install_method: deb, define {var} con un valor real (sin placeholders __REQUIRED_*__)."
+            )
+    return errors
 
 
 def main() -> int:
@@ -199,7 +229,23 @@ def main() -> int:
         return 2
 
     required_vars = infer_required_variables(var_descriptions)
+    default_mode = not args.vars_file
     var_files = [Path(path) for path in args.vars_file] if args.vars_file else resolve_default_var_files()
+
+    subcase_1b_path = Path("provisioning/group_vars/subcase_1b.yml")
+    if default_mode and not subcase_1b_path.exists():
+        print("ERROR: No existe provisioning/group_vars/subcase_1b.yml.")
+        print("Acción: copiar desde provisioning/group_vars/subcase_1b.example.yml")
+        return 1
+
+    if default_mode:
+        bips_errors = validate_bips_values(parse_yaml_like_variables(subcase_1b_path))
+        if bips_errors:
+            print("ERROR: Validación BIPS fallida en provisioning/group_vars/subcase_1b.yml")
+            for error in bips_errors:
+                print(f" - {error}")
+            return 1
+
     file_values = collect_sources(var_files)
 
     effective_values = build_effective_values(required_vars, file_values)
