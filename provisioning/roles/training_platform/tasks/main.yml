@@ -66,7 +66,7 @@
 
 - name: Check training platform requirements file
   ansible.builtin.stat:
-    path: "{{ training_platform_requirements_file }}"
+    path: "{{ training_platform_app_dir }}/requirements.txt"
   register: training_platform_requirements
 
 - name: Check training platform application directory in assert_present mode
@@ -97,7 +97,7 @@
       - training_platform_requirements.stat.exists
       - training_platform_requirements.stat.isreg
     fail_msg: >-
-      requirements.txt no existe en {{ training_platform_requirements_file }}.
+      requirements.txt no existe en {{ training_platform_app_dir }}/requirements.txt.
       Current mode: training_platform_source_mode={{ training_platform_source_mode }}.
       If code is not pre-provisioned on the remote host, use
       training_platform_source_mode=sync_from_repo and a valid training_platform_source_dir.
@@ -169,7 +169,7 @@
 
 - name: Install python requirements in virtualenv
   ansible.builtin.pip:
-    requirements: "{{ training_platform_requirements_file }}"
+    requirements: "{{ training_platform_app_dir }}/requirements.txt"
     virtualenv: "{{ training_platform_venv_path }}"
     virtualenv_command: python3 -m venv
     state: present
