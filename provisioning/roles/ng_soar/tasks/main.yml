@@ -5,16 +5,19 @@
     - name: Validate NG-SOAR installation parameters
       ansible.builtin.assert:
         that:
-          - ng_soar_install_method in ['deb', 'docker']
+          - ng_soar_install_method in ['deb', 'docker', 'smb']
           - ng_soar_install_method != 'deb' or ng_soar_repo_url | length > 0
           - ng_soar_install_method != 'deb' or ng_soar_package_path | length > 0
           - ng_soar_install_method != 'deb' or ng_soar_package_checksum | length > 0
           - ng_soar_install_method != 'docker' or ng_soar_docker_enabled | bool
           - ng_soar_install_method != 'docker' or ng_soar_docker_project_src | length > 0
+          - ng_soar_install_method != 'smb' or ng_soar_smb_project_src | length > 0
+          - ng_soar_install_method != 'smb' or ng_soar_smb_compose_name | length > 0
         fail_msg: >-
           Invalid configuration for NG-SOAR. If you will use deb, define ng_soar_repo_url, ng_soar_package_path and
           ng_soar_package_checksum in provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars).
-          If you will not use deb, change ng_soar_install_method to "docker".
+          If you will not use deb, change ng_soar_install_method to "docker" or "smb".
+          For smb, define ng_soar_smb_mount_path, ng_soar_smb_compose_name, and ng_soar_smb_project_src.
 
     - name: Assert supported OS family for NG-SOAR deb flow
       ansible.builtin.assert:
@@ -184,3 +187,34 @@
               method: "{{ ng_soar_install_method }}"
               compose_path: "{{ ng_soar_docker_project_src }}/docker-compose.yml"
               compose_result: "{{ ng_soar_docker_compose_result.actions | default(ng_soar_docker_compose_result.changed) }}"
+
+    - name: NG-SOAR SMB yml installation flow
+      when: ng_soar_install_method == 'smb'
+      block:
+        - name: Ensure NG-SOAR project directory exists
+          ansible.builtin.file:
+            path: "{{ ng_soar_smb_project_src }}"
+            state: directory
+            mode: "0755"
+
+        - name: Copy NG-SOAR compose file from SMB share
+          ansible.builtin.copy:
+            src: "{{ ng_soar_smb_mount_path }}/{{ ng_soar_smb_compose_name }}"
+            dest: "{{ ng_soar_smb_project_src }}/docker-compose.yml"
+            remote_src: true
+            mode: "0644"
+
+        - name: Deploy NG-SOAR Docker stack from SMB compose file
+          community.docker.docker_compose_v2:
+            project_src: "{{ ng_soar_smb_project_src }}"
+            state: present
+            build: always
+          register: ng_soar_smb_compose_result
+
+        - name: Debug NG-SOAR SMB deployment summary
+          ansible.builtin.debug:
+            msg:
+              service: NG-SOAR
+              method: smb
+              compose_path: "{{ ng_soar_smb_project_src }}/docker-compose.yml"
+              compose_result: "{{ ng_soar_smb_compose_result.actions | default(ng_soar_smb_compose_result.changed) }}"

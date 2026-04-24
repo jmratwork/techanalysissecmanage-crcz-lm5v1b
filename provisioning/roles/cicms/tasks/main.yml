@@ -5,16 +5,19 @@
     - name: Validate CICMS installation parameters
       ansible.builtin.assert:
         that:
-          - cicms_install_method in ['deb', 'docker']
+          - cicms_install_method in ['deb', 'docker', 'smb']
           - cicms_install_method != 'deb' or cicms_repo_url | length > 0
           - cicms_install_method != 'deb' or cicms_package_path | length > 0
           - cicms_install_method != 'deb' or cicms_package_checksum | length > 0
           - cicms_install_method != 'docker' or cicms_docker_enabled | bool
           - cicms_install_method != 'docker' or cicms_docker_project_src | length > 0
+          - cicms_install_method != 'smb' or cicms_smb_project_src | length > 0
+          - cicms_install_method != 'smb' or cicms_smb_bundle_name | length > 0
         fail_msg: >-
           Invalid configuration for CICMS. If you will use deb, define cicms_repo_url, cicms_package_path and
           cicms_package_checksum in provisioning/group_vars/subcase_1b.yml (or in your inventory's group_vars/host_vars).
-          If you will not use deb, change cicms_install_method to "docker".
+          If you will not use deb, change cicms_install_method to "docker" or "smb".
+          For smb, define cicms_smb_mount_path, cicms_smb_bundle_name, and cicms_smb_project_src.
 
     - name: Assert supported OS family for CICMS deb flow
       ansible.builtin.assert:
@@ -175,3 +178,64 @@
               method: "{{ cicms_install_method }}"
               compose_path: "{{ cicms_docker_project_src }}/docker-compose.yml"
               compose_result: "{{ cicms_docker_compose_result.actions | default(cicms_docker_compose_result.changed) }}"
+
+    - name: CICMS SMB bundle installation flow (DFIR-IRIS)
+      when: cicms_install_method == 'smb'
+      block:
+        - name: Ensure DFIR-IRIS project directory exists
+          ansible.builtin.file:
+            path: "{{ cicms_smb_project_src }}"
+            state: directory
+            mode: "0755"
+
+        - name: Copy DFIR-IRIS bundle from SMB share
+          ansible.builtin.copy:
+            src: "{{ cicms_smb_mount_path }}/{{ cicms_smb_bundle_name }}"
+            dest: "{{ cicms_smb_bundle_dest }}"
+            remote_src: true
+            mode: "0644"
+
+        - name: Unzip DFIR-IRIS bundle
+          ansible.builtin.unarchive:
+            src: "{{ cicms_smb_bundle_dest }}"
+            dest: /opt/
+            remote_src: true
+            extra_opts: ["-o"]
+
+        - name: Configure MISP URL in DFIR-IRIS env
+          ansible.builtin.lineinfile:
+            path: "{{ cicms_smb_project_src }}/.env"
+            regexp: '^IRIS_MISP_URL='
+            line: "IRIS_MISP_URL={{ cicms_misp_url }}"
+            state: present
+          when: cicms_misp_url | length > 0
+
+        - name: Configure MISP SSL verification in DFIR-IRIS env
+          ansible.builtin.lineinfile:
+            path: "{{ cicms_smb_project_src }}/.env"
+            regexp: '^IRIS_MISP_VERIFY_CERT='
+            line: "IRIS_MISP_VERIFY_CERT={{ cicms_misp_verify_cert | string | lower }}"
+            state: present
+
+        - name: Configure MISP API key in DFIR-IRIS env
+          ansible.builtin.lineinfile:
+            path: "{{ cicms_smb_project_src }}/.env"
+            regexp: '^IRIS_MISP_KEY='
+            line: "IRIS_MISP_KEY={{ cicms_misp_api_key }}"
+            state: present
+          when: cicms_misp_api_key | length > 0
+
+        - name: Deploy DFIR-IRIS Docker stack from SMB bundle
+          community.docker.docker_compose_v2:
+            project_src: "{{ cicms_smb_project_src }}"
+            state: present
+            build: always
+          register: cicms_smb_compose_result
+
+        - name: Debug CICMS SMB deployment summary
+          ansible.builtin.debug:
+            msg:
+              service: CICMS/DFIR-IRIS
+              method: smb
+              project_src: "{{ cicms_smb_project_src }}"
+              compose_result: "{{ cicms_smb_compose_result.actions | default(cicms_smb_compose_result.changed) }}"

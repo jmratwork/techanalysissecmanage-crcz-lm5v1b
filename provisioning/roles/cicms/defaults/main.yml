@@ -45,3 +45,14 @@ cicms_docker_healthcheck_status:
 cicms_docker_healthcheck_validate_certs: false
 cicms_docker_healthcheck_retries: 10
 cicms_docker_healthcheck_delay: 5
+
+# SMB-based bundle deployment (DFIR-IRIS zip distributed from a shared storage server)
+cicms_smb_mount_path: /mnt/smb_shared
+cicms_smb_bundle_name: dfir-iris-custom.zip
+cicms_smb_bundle_dest: /opt/dfir-iris-custom.zip
+cicms_smb_project_src: /opt/dfir-iris-custom
+
+# MISP integration injected into the DFIR-IRIS .env at deploy time
+cicms_misp_url: "{{ MISP_URL | default('') }}"
+cicms_misp_api_key: "{{ MISP_API_KEY | default('') }}"
+cicms_misp_verify_cert: false

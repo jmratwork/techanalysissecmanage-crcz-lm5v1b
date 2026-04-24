@@ -27,3 +27,21 @@ common_bootstrap_docker_packages:
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
+
+# Docker Hub authentication (for pulling private images)
+common_bootstrap_docker_hub_login: false
+common_bootstrap_docker_hub_username: ""
+common_bootstrap_docker_hub_password: ""
+
+# SMB tools for component distribution from a shared storage server
+common_bootstrap_smb_packages:
+  - smbclient
+  - cifs-utils
+  - unzip
+
+common_bootstrap_install_smb_tools: false
+common_bootstrap_smb_mount_enabled: false
+common_bootstrap_smb_share: ""
+common_bootstrap_smb_mount_path: /mnt/smb_shared
+common_bootstrap_smb_opts: "guest,vers=3.0"
+common_bootstrap_smb_unmount_after: false
