@@ -1,3 +1,6 @@
-# Keep this file aligned with the global dependency contract.
-# It intentionally delegates to the root requirements to avoid drift.
--r ../../requirements.txt
+# Runtime dependencies for the training platform
+Flask==3.0.3
+requests==2.32.3
+PyJWT==2.9.0
+Jinja2==3.1.4
+bcrypt==4.1.3
