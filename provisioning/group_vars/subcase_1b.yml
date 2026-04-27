@@ -43,11 +43,6 @@
 # Ejemplos CYNET modo docker
 # ===========================
 # Definir el entorno de despliegue en group_vars (sin depender de defaults del rol).
-bips_install_method: docker
-bips_docker_enabled: true
-bips_docker_image: registry.interna.example/bips
-bips_docker_tag: "__REQUIRED_DOCKER_TAG__"
-
 ng_siem_install_method: docker
 ng_siem_docker_enabled: true
 ng_siem_docker_image: registry.interna.example/ng-siem

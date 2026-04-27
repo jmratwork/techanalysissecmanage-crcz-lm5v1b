@@ -1,0 +1,5 @@
+---
+bips_install_method: docker
+bips_docker_enabled: true
+bips_docker_image: registry.interna.example/bips
+bips_docker_tag: "__REQUIRED_DOCKER_TAG__"
